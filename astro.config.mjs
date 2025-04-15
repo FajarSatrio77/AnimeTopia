@@ -2,8 +2,6 @@
 import { defineConfig } from "astro/config";
 import tailwindcss from "@tailwindcss/vite";
 import cloudflare from "@astrojs/cloudflare";
-import vercel from "@astrojs/vercel";
-
 import playformCompress from "@playform/compress";
 
 import react from "@astrojs/react";
