@@ -1,0 +1,177 @@
+---
+interface Data {
+  title: string;
+  url: string;
+  pages: string;
+  img: string;
+  tipe: string;
+  episode: string;
+  id: string;
+  slug: string;
+}
+
+interface Props {
+  data: Data[] | null;
+  loadingNumber: number;
+  search: boolean;
+}
+
+const { data, search } = Astro.props;
+---
+
+<!-- Cards -->{
+  data &&
+    data.map((item, index) => {
+      const imgSrc = item.image?.includes("wp.com")
+        ? `${item.image}?quality=50&w=240`
+        : item.image || null;
+
+      const title = item.title;
+      const episode = item.episode
+        ? `?episode=${item.episode.split(" ")[1]?.split("/")[0]}`
+        : "";
+
+      const linkTo = `/watch/${item.id}/${item.slug}${episode}`;
+
+      return (
+        <div
+          key={index}
+          class="card aspect-[3/4] group relative select-none shadow rounded max-h-96"
+        >
+          <figure>
+            <img
+              src={`${imgSrc}?w=240`}
+              width={240}
+              height={340}
+              alt={item.title}
+              loading="lazy"
+              class="card-image object-cover aspect-[3/4] rounded w-full h-full"
+            />
+          </figure>
+
+          <div class="w-full absolute bottom-0 bg-base-100/50 group-hover:backdrop-blur-sm transition-[height] max-h-[100%] h-20 md:h-22 group-hover:h-96 flex flex-col justify-center items-center rounded">
+            <h3 class="text-sm md:text-md font-bold absolute top-2 line-clamp-2 group-hover:line-clamp-5 text-center">
+              {title}
+            </h3>
+
+            <div class="absolute bottom-1 flex flex-col gap-4">
+              <div class="flex gap-2">
+                <a
+                  href={linkTo}
+                  class="hidden group-hover:flex btn btn-primary btn-sm"
+                >
+                  {search ? (
+                    <span class="search-link">Tonton</span>
+                  ) : (
+                    <>
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="16"
+                        height="16"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        class="lucide lucide-play size-4"
+                      >
+                        <polygon points="5 3 19 12 5 21 5 3" />
+                      </svg>
+                      Tonton
+                    </>
+                  )}
+                </a>
+                <button
+                  class="hidden group-hover:flex btn btn-ghost btn-sm favorite-btn"
+                  data-anime-id={item.id}
+                  data-anime-title={item.title}
+                  data-anime-slug={item.slug}
+                  data-anime-image={imgSrc}
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    class="lucide lucide-heart size-4"
+                  >
+                    <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" />
+                  </svg>
+                </button>
+              </div>
+              <p class="text-center text-xs font-semibold">
+                {item.episode || item.type || item.status}
+              </p>
+            </div>
+          </div>
+        </div>
+      );
+    })
+}
+
+<script>
+  // Handle search dialog closure
+  document.querySelectorAll(".search-link").forEach((link) => {
+    link.addEventListener("click", () => {
+      const menuSearch = document.getElementById("menu-search");
+      menuSearch?.close?.();
+    });
+  });
+
+  // Handle favorite functionality
+  function toggleFavorite(button) {
+    const animeId = button.dataset.animeId;
+    const animeTitle = button.dataset.animeTitle;
+    const animeSlug = button.dataset.animeSlug;
+    const animeImage = button.dataset.animeImage;
+    
+    let favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
+    const isFavorite = favorites.some(fav => fav.id === animeId);
+    
+    if (isFavorite) {
+      favorites = favorites.filter(fav => fav.id !== animeId);
+      button.classList.remove('btn-primary');
+      button.classList.add('btn-ghost');
+    } else {
+      favorites.push({
+        id: animeId,
+        title: animeTitle,
+        slug: animeSlug,
+        image: animeImage
+      });
+      button.classList.remove('btn-ghost');
+      button.classList.add('btn-primary');
+    }
+    
+    localStorage.setItem('favorites', JSON.stringify(favorites));
+    
+    // Update favorites count across all pages
+    const countElements = document.querySelectorAll('#favorites-count');
+    countElements.forEach(element => {
+      element.textContent = favorites.length;
+    });
+    
+    // Trigger storage event to update other tabs
+    window.dispatchEvent(new Event('storage'));
+  }
+
+  // Initialize favorite buttons
+  document.querySelectorAll('.favorite-btn').forEach(button => {
+    const animeId = button.dataset.animeId;
+    const favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
+    const isFavorite = favorites.some(fav => fav.id === animeId);
+    
+    if (isFavorite) {
+      button.classList.remove('btn-ghost');
+      button.classList.add('btn-primary');
+    }
+    
+    button.addEventListener('click', () => toggleFavorite(button));
+  });
+</script>

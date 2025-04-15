@@ -1,0 +1,194 @@
+<div
+  class="sticky top-0 left-0 right-0 navbar bg-base-100/90 backdrop-blur shadow-sm z-10 rounded-b-lg"
+>
+  <div class="navbar-start">
+    <!-- Mobile Menu (Hamburger) -->
+    <div class="dropdown lg:hidden">
+      <label tabindex="0" role="button" class="btn btn-ghost btn-circle hamburger-btn">
+        <div class="hamburger">
+          <span class="line"></span>
+          <span class="line"></span>
+          <span class="line"></span>
+        </div>
+      </label>
+      <ul
+        tabindex="0"
+        class="menu menu-sm dropdown-content bg-base-100 rounded-box z-1 mt-3 w-52 p-2 shadow animate-fadeIn"
+      >
+        <li><a href="/">Ongoing</a></li>
+        <li><a href="/completed">Completed</a></li>
+        <li><a href="/history">Riwayat Tontonan</a></li>
+        <li><a href="/akun">profile</a></li>
+      </ul>
+    </div>
+    
+    <!-- Desktop Navigation -->
+    <div class="hidden lg:flex">
+      <ul class="menu menu-horizontal px-1 desktop-nav">
+        <li><a href="/" class={Astro.url.pathname === "/" ? "active" : ""}>Ongoing</a></li>
+        <li><a href="/completed" class={Astro.url.pathname === "/completed" ? "active" : ""}>Completed</a></li>
+        <li><a href="/history" class={Astro.url.pathname === "/history" ? "active" : ""}>Riwayat Tontonan</a></li>
+        <li><a href="/akun" class={Astro.url.pathname === "/akun" ? "active" : ""}>Profile</a></li>
+      </ul>
+    </div>
+  </div>
+  
+  <!-- Centered Logo -->
+  <div class="navbar-center">
+    <a href="/" class="btn btn-ghost text-xl">AnimeTopia</a>
+  </div>
+  
+  <div class="navbar-end">
+    <div class="dropdown dropdown-end">
+      <button tabindex="0" class="btn btn-ghost btn-circle">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          class="h-5 w-5"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+        </svg>
+      </button>
+      <div tabindex="0" class="dropdown-content z-10 menu p-2 shadow bg-base-100 rounded-box w-80 animate-fadeIn">
+        <form action="/search" method="get" class="p-2">
+          <div class="join w-full">
+            <input type="text" name="q" placeholder="Cari anime..." class="input input-bordered join-item w-full" />
+            <button class="btn btn-primary join-item">Cari</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  /* Hamburger Menu Animation */
+  .hamburger {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    width: 20px;
+    height: 16px;
+    cursor: pointer;
+    transition: transform 0.3s ease-in-out;
+  }
+
+  .hamburger .line {
+    display: block;
+    width: 100%;
+    height: 2px;
+    background-color: currentColor;
+    border-radius: 2px;
+    transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
+  }
+  
+  .dropdown:focus-within .hamburger {
+    transform: rotate(90deg);
+  }
+  
+  .dropdown:focus-within .hamburger .line:nth-child(1) {
+    transform: translateY(7px) rotate(45deg);
+  }
+  
+  .dropdown:focus-within .hamburger .line:nth-child(2) {
+    opacity: 0;
+  }
+  
+  .dropdown:focus-within .hamburger .line:nth-child(3) {
+    transform: translateY(-7px) rotate(-45deg);
+  }
+  
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(-10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  .animate-fadeIn {
+    animation: fadeIn 0.2s ease-out forwards;
+  }
+  
+  /* Desktop Navigation Styling */
+  .desktop-nav a {
+    opacity: 0.7;
+    transition: opacity 0.3s, border-bottom 0.3s;
+    position: relative;
+    padding-bottom: 0.5rem;
+  }
+  
+  .desktop-nav a:hover {
+    opacity: 1;
+  }
+  
+  .desktop-nav a:hover::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 0;
+    height: 2px;
+    background: linear-gradient(to right, #4a9fff, #7c4dff);
+    border-radius: 2px;
+    animation: expandUnderline 0.3s forwards;
+  }
+  
+  @keyframes expandUnderline {
+    to {
+      width: 60%;
+    }
+  }
+  
+  .desktop-nav a.active {
+    opacity: 1;
+  }
+  
+  .desktop-nav a.active::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 60%;
+    height: 2px;
+    background: linear-gradient(to right, #4a9fff, #7c4dff, #ff43a3);
+    border-radius: 2px;
+    animation: glowPulse 2s infinite alternate;
+  }
+  
+  @keyframes glowPulse {
+    0% {
+      box-shadow: 0 0 2px rgba(76, 159, 255, 0.4);
+    }
+    100% {
+      box-shadow: 0 0 8px rgba(124, 77, 255, 0.7);
+    }
+  }
+</style>
+
+<script>
+  // Update active state on navigation
+  document.addEventListener('DOMContentLoaded', () => {
+    const currentPath = window.location.pathname;
+    
+    // Add active class to current page link
+    const navLinks = document.querySelectorAll('.desktop-nav a');
+    navLinks.forEach(link => {
+      const href = link.getAttribute('href') || '';
+      if (currentPath === href || (href !== '/' && currentPath.startsWith(href))) {
+        link.classList.add('active');
+      }
+    });
+  });
+</script>

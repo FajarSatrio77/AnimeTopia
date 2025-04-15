@@ -1,0 +1,244 @@
+---
+export const prerender = false;
+import Layout from "~/layouts/Layout.astro";
+import Table from "~/components/ui/Table.astro";
+import { fetchAnimeData } from "~/utils/api";
+
+const { id, slug } = Astro.params;
+const episode = Astro.url.searchParams.get("episode") ?? null;
+
+// parameters validation
+if (!id || !slug) {
+  return new Response(null, { status: 404, statusText: "Not Found" });
+}
+
+const res = await fetchAnimeData(id, slug);
+if (!res) {
+  return new Response(null, { status: 404, statusText: "Anime not found" });
+}
+const data = res;
+
+// Ekstrak data episode dengan aman.
+const episodes = data.results.episode;
+const totalEp = episodes?.at(-1) ?? 1;
+const isFinished = data.results.details[2]?.data?.includes("Selesai");
+const checkEpSelesai = episode ?? (isFinished ? episodes[0] : totalEp);
+---
+
+<!-- Include Vidstack player theme and video styles -->
+<link rel="stylesheet" href="https://cdn.vidstack.io/player/theme.css" />
+<link rel="stylesheet" href="https://cdn.vidstack.io/player/video.css" />
+
+<Layout title={data.results.title} description="">
+  <div class="flex justify-between items-center my-4">
+    <h1 class="text-xl font-bold line-clamp-1">{data.results.title}</h1>
+    <a href="/" class="btn btn-primary btn-sm gap-2">
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-left">
+        <path d="m12 19-7-7 7-7"></path>
+        <path d="M19 12H5"></path>
+      </svg>
+      Kembali ke Ongoing
+    </a>
+  </div>
+  
+  <div class="grid grid-cols-1 gap-2 my-2">
+    <!-- Ini untuk menyimpan data agar si JSHT bisa membacanya, sebenarnya mungkin kurang bagus tapi ya sudahlah anggap aja a life hack -->
+    <input id="episode" type="hidden" value={checkEpSelesai} />
+    
+    <!-- Episode Selection Panel - Fixed position above video player -->
+    <div class="bg-base-300 rounded-lg p-3 mb-2">
+      <div class="flex justify-between items-center mb-2">
+        <h2 class="text-lg font-bold">Episode List</h2>
+        <div class="flex items-center">
+          <span class="mr-2 text-sm opacity-70">Episode saat ini: {checkEpSelesai}</span>
+          <div class="badge badge-primary">{episodes.length} episode</div>
+        </div>
+      </div>
+      
+      <!-- Tambahkan class untuk mobile friendly -->
+      <div class="episode-container bg-base-200 rounded-lg p-2 overflow-x-auto">
+        <div class="grid grid-cols-5 sm:grid-cols-7 md:grid-cols-10 lg:grid-cols-12 gap-2">
+          {episodes.map((ep) => (
+            <a 
+              href={`/watch/${id}/${slug}?episode=${ep}`}
+              data-episode={ep} 
+              class={`episode-btn btn btn-sm ${ep == checkEpSelesai ? 'btn-primary' : 'btn-ghost'} w-full touch-manipulation`}
+            >
+              {ep}
+            </a>
+          ))}
+        </div>
+      </div>
+    </div>
+    
+    <div class="bg-base-300 rounded pb-2">
+      <p
+        id="playerInfo"
+        class="aspect-video skeleton flex flex-col items-center justify-center text-center mb-2"
+      >
+        Memuat video player
+      </p>
+      <div
+        id="player"
+        data-poster={data.results.image}
+        data-storage="player-storage"
+        data-autoplay="true"
+        data-playsinline
+        class="aspect-video hidden"
+      >
+      </div>
+      <div class="flex justify-between items-center mx-2 mt-2">
+        <div class="btn-group">
+          <button id="prevEpisode" class="btn btn-sm">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-1"><polyline points="15 18 9 12 15 6"></polyline></svg>
+            Prev
+          </button>
+          <button id="currentEp" class="btn btn-sm btn-disabled">Episode {checkEpSelesai}</button>
+          <button id="nextEpisode" class="btn btn-sm">
+            Next
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="ml-1"><polyline points="9 18 15 12 9 6"></polyline></svg>
+          </button>
+        </div>
+      </div>
+    </div>
+    
+    <div class="p-2 rounded grid gap-2 bg-base-300">
+      <h1 class="text-center mt-2 font-bold text-lg">{data.results.title}</h1>
+      <Table data={data.results.details} />
+      <span>Sinopsis: </span><p set:html={data.results.description} />
+    </div>
+  </div>
+</Layout>
+
+<!-- Player initialization script -->
+<script>
+  import { initWatchPlayer } from "/src/scripts/watch.js";
+  document.addEventListener("astro:after-swap", initWatchPlayer);
+  initWatchPlayer();
+</script>
+
+<!-- Script untuk menyimpan riwayat tontonan -->
+<script is:inline>
+  document.addEventListener('DOMContentLoaded', () => {
+    // Mendapatkan informasi anime yang sedang ditonton
+    const animeId = window.location.pathname.split('/')[2];
+    const animeSlug = window.location.pathname.split('/')[3];
+    const episodeParam = new URLSearchParams(window.location.search).get('episode');
+    const episodeNumber = episodeParam || document.getElementById('episode')?.value || '1';
+    const animeTitle = document.querySelector('h1.text-xl')?.textContent || '';
+    const animeImage = document.querySelector('#player')?.getAttribute('data-poster') || '';
+    
+    // Fungsi untuk menyimpan riwayat tontonan
+    function saveToWatchHistory() {
+      // Dapatkan riwayat yang sudah ada atau buat array baru jika belum ada
+      const existingHistory = localStorage.getItem('animeWatchHistory');
+      let watchHistory = existingHistory ? JSON.parse(existingHistory) : [];
+      
+      // Cek apakah anime sudah ada di riwayat
+      const existingAnimeIndex = watchHistory.findIndex(item => item.id === animeId);
+      
+      // Data anime yang akan disimpan
+      const animeData = {
+        id: animeId,
+        slug: animeSlug,
+        title: animeTitle,
+        episode: episodeNumber,
+        image: animeImage,
+        lastWatched: new Date().toISOString()
+      };
+      
+      // Jika anime sudah ada di riwayat, update data
+      if (existingAnimeIndex !== -1) {
+        watchHistory.splice(existingAnimeIndex, 1);
+      }
+      
+      // Tambahkan anime ke awal array (paling baru)
+      watchHistory.unshift(animeData);
+      
+      // Batasi riwayat hanya 20 anime
+      if (watchHistory.length > 20) {
+        watchHistory = watchHistory.slice(0, 20);
+      }
+      
+      // Simpan kembali ke localStorage
+      localStorage.setItem('animeWatchHistory', JSON.stringify(watchHistory));
+      console.log('Anime saved to watch history:', animeData);
+    }
+    
+    // Simpan ke riwayat saat halaman dimuat
+    saveToWatchHistory();
+    
+    // Tambahkan link ke halaman riwayat di dekat tombol kembali
+    const backButton = document.querySelector('.flex.justify-between.items-center.my-4');
+    if (backButton) {
+      const historyLink = document.createElement('a');
+      historyLink.href = '/history';
+      historyLink.className = 'btn btn-outline btn-sm flex items-center gap-1';
+      historyLink.innerHTML = `
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd" />
+        </svg>
+        Riwayat
+      `;
+      backButton.insertBefore(historyLink, backButton.lastElementChild);
+    }
+  });
+</script>
+
+<style is:inline>
+  /* Styling untuk membuat tombol episode lebih mudah disentuh pada mobile */
+  .episode-btn {
+    min-height: 2.5rem;
+    padding: 0.5rem;
+    margin-bottom: 0.25rem;
+    font-size: 0.9rem;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: rgba(0,0,0,0);
+  }
+  
+  .episode-container {
+    max-height: 180px;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch; /* Untuk smooth scrolling di iOS */
+  }
+  
+  /* Membuat grid lebih responsive */
+  @media (max-width: 640px) {
+    .episode-btn {
+      min-height: 3rem; /* Lebih tinggi untuk touchscreen */
+    }
+  }
+</style>
+
+<!-- Script untuk mobile touch event yang lebih baik -->
+<script is:inline>
+  // Fix untuk perangkat touch (mobile)
+  document.addEventListener('DOMContentLoaded', () => {
+    console.log("Mobile touch fixes loaded");
+    
+    // Tambahkan perilaku khusus touch untuk tombol episode
+    const episodeBtns = document.querySelectorAll('.episode-btn');
+    
+    episodeBtns.forEach(btn => {
+      // Hapus delay sentuhan di perangkat mobile (khususnya iOS)
+      btn.addEventListener('touchstart', function() {
+        // Hindari double firing dari event
+        event.preventDefault();
+        
+        const selectedEpisode = this.getAttribute('data-episode');
+        if (!selectedEpisode) return;
+        
+        // Visual feedback untuk sentuhan
+        episodeBtns.forEach(b => {
+          b.classList.remove('btn-primary');
+          if (b !== this) b.classList.add('btn-ghost');
+        });
+        this.classList.add('btn-primary');
+        this.classList.remove('btn-ghost');
+        
+        // Arahkan ke episode yang dipilih
+        window.location.href = this.href;
+      }, {passive: false});
+    });
+  });
+</script>

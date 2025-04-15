@@ -1,0 +1,146 @@
+---
+import Layout from "~/layouts/Layout.astro";
+import Card from "~/components/ui/Card.astro";
+---
+
+<Layout title="Favorites - AnimeTopia">
+  <div class="container mx-auto px-4 py-8">
+    <h1 class="text-2xl font-bold mb-6">Anime Favorit Saya</h1>
+    
+    <div id="favorites-container" class="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-4">
+      <!-- Favorites will be loaded here -->
+    </div>
+
+    <div id="no-favorites" class="text-center py-12 hidden">
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="48"
+        height="48"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        class="mx-auto mb-4"
+      >
+        <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" />
+      </svg>
+      <p class="text-lg">Belum ada anime favorit</p>
+      <p class="text-sm text-gray-500">Klik tombol hati pada anime untuk menambahkannya ke favorit</p>
+    </div>
+  </div>
+
+  <script>
+    function loadFavorites() {
+      const container = document.getElementById('favorites-container');
+      const noFavorites = document.getElementById('no-favorites');
+      const favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
+      
+      if (favorites.length === 0) {
+        container.classList.add('hidden');
+        noFavorites.classList.remove('hidden');
+        return;
+      }
+      
+      container.classList.remove('hidden');
+      noFavorites.classList.add('hidden');
+      
+      container.innerHTML = favorites.map(fav => `
+        <div class="card aspect-[3/4] group relative select-none shadow rounded max-h-96">
+          <figure>
+            <img
+              src="${fav.image}"
+              width="240"
+              height="340"
+              alt="${fav.title}"
+              loading="lazy"
+              class="card-image object-cover aspect-[3/4] rounded w-full h-full"
+            />
+          </figure>
+          <div class="w-full absolute bottom-0 bg-base-100/50 group-hover:backdrop-blur-sm transition-[height] max-h-[100%] h-20 md:h-22 group-hover:h-96 flex flex-col justify-center items-center rounded">
+            <h3 class="text-sm md:text-md font-bold absolute top-2 line-clamp-2 group-hover:line-clamp-5 text-center">
+              ${fav.title}
+            </h3>
+            <div class="absolute bottom-1 flex flex-col gap-4">
+              <div class="flex gap-2">
+                <a href="/watch/${fav.id}/${fav.slug}" class="hidden group-hover:flex btn btn-primary btn-sm">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    class="lucide lucide-play size-4"
+                  >
+                    <polygon points="5 3 19 12 5 21 5 3" />
+                  </svg>
+                  Tonton
+                </a>
+                <button
+                  class="hidden group-hover:flex btn btn-primary btn-sm favorite-btn"
+                  data-anime-id="${fav.id}"
+                  data-anime-title="${fav.title}"
+                  data-anime-slug="${fav.slug}"
+                  data-anime-image="${fav.image}"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    class="lucide lucide-heart size-4"
+                  >
+                    <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      `).join('');
+      
+      // Reinitialize favorite buttons
+      document.querySelectorAll('.favorite-btn').forEach(button => {
+        button.addEventListener('click', () => {
+          toggleFavorite(button);
+          loadFavorites(); // Reload after removing
+        });
+      });
+    }
+
+    function toggleFavorite(button) {
+      const animeId = button.dataset.animeId;
+      let favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
+      favorites = favorites.filter(fav => fav.id !== animeId);
+      localStorage.setItem('favorites', JSON.stringify(favorites));
+    }
+
+    // Load favorites when page loads
+    loadFavorites();
+    
+    // Update favorites count in profile
+    function updateFavoritesCount() {
+      const favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
+      const countElement = document.getElementById('favorites-count');
+      if (countElement) {
+        countElement.textContent = favorites.length;
+      }
+    }
+    
+    // Update count when page loads
+    updateFavoritesCount();
+    
+    // Listen for storage changes to update count
+    window.addEventListener('storage', updateFavoritesCount);
+  </script>
+</Layout> 
