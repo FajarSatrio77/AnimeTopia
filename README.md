@@ -13,7 +13,6 @@ Aplikasi streaming anime dengan Astro.js dan MySQL sebagai database.
 
 - Frontend: Astro.js dengan Tailwind CSS
 - Backend: Express.js 
-- Database: MySQL
 
 ## Cara Memulai
 
@@ -21,22 +20,14 @@ Aplikasi streaming anime dengan Astro.js dan MySQL sebagai database.
 
 - Node.js (versi 16 atau lebih tinggi)
 - NPM 
-- XAMPP atau MySQL server
 
-### Langkah 1: Setup Database
-
-1. Jalankan XAMPP dan aktifkan MySQL dan Apache
-2. Buka phpMyAdmin (biasanya di http://localhost/phpmyadmin)
-3. Buat database baru bernama `anime_app`
-4. Import file `src/pages/anime_app.sql` ke database tersebut
-
-### Langkah 2: Install Dependencies
+### Langkah 1: Install Dependencies
 
 ```bash
 npm install
 ```
 
-### Langkah 3: Jalankan Server API
+### Langkah 2: Jalankan Server API
 
 ```bash
 npm run server
@@ -44,7 +35,7 @@ npm run server
 
 Server API akan berjalan di http://localhost:8000
 
-### Langkah 4: Jalankan Aplikasi Frontend
+### Langkah 3: Jalankan Aplikasi Frontend
 
 Dalam terminal terpisah, jalankan:
 
@@ -73,8 +64,6 @@ Aplikasi frontend akan berjalan di http://localhost:4321
 - `POST /api/register` - Registrasi pengguna baru
 
 ## Catatan Penting
-
-- Pastikan XAMPP/MySQL server berjalan sebelum menjalankan aplikasi
 - Server backend dan frontend harus berjalan bersamaan
 
 ```sh
