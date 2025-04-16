@@ -12,6 +12,7 @@
     "server": "node server.cjs"
   },
   "dependencies": {
+    "@astrojs/adapter-static": "^4.0.1",
     "@astrojs/cloudflare": "^12.2.3",
     "@astrojs/react": "^4.2.4",
     "@astrojs/vercel": "^8.1.3",
