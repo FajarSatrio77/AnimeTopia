@@ -1,7 +1,7 @@
 // @ts-check
 import { defineConfig } from "astro/config";
 import tailwindcss from "@tailwindcss/vite";
-import vercel from "@astrojs/vercel";
+import staticAdapter from "@astrojs/adapter-static";
 import playformCompress from "@playform/compress";
 
 import react from "@astrojs/react";
@@ -17,7 +17,7 @@ export default defineConfig({
 
   output: "static",
 
-  adapter: vercel({
+  adapter: staticAdapter({
     platformProxy: {
       enabled: true,
     },
