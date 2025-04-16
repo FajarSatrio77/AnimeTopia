@@ -4,6 +4,7 @@
             "source" : "/(.*)", "destination": "/"
         }
     ],
+    "routes": [],
     "outputDirectory": "dist"
   
 }
