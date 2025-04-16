@@ -1,7 +1,7 @@
 // @ts-check
 import { defineConfig } from "astro/config";
 import tailwindcss from "@tailwindcss/vite";
-import vercel from "@astrojs/vercel/static";
+import vercel from "@astrojs/vercel/serverless";
 import playformCompress from "@playform/compress";
 import react from "@astrojs/react";
 
@@ -14,12 +14,19 @@ export default defineConfig({
     },
   },
 
-  output: "static",
+  output: "server",
 
   adapter: vercel({
     webAnalytics: {
       enabled: true,
     },
+    imagesConfig: {
+      sizes: [240, 340, 640, 768, 1024],
+      domains: [],
+      minimumCacheTTL: 60,
+    },
+    edgeMiddleware: true,
+    imageService: true,
   }),
 
   integrations: [playformCompress(), react()],

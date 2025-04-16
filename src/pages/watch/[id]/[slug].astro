@@ -1,27 +1,88 @@
 ---
-export const prerender = true;
+export const prerender = false;
 import Layout from "~/layouts/Layout.astro";
 import Table from "~/components/ui/Table.astro";
-import { fetchAnimeData } from "~/utils/api";
+import { fetchAnimeData, fetchData } from "~/utils/api";
 
+// Definisikan rute statis yang akan di-prerender
+export async function getStaticPaths() {
+  try {
+    // Ambil data ongoing dan completed untuk prerender halaman-halaman populer
+    const ongoingData = await fetchData("ongoing");
+    const completedData = await fetchData("completed");
+    
+    let paths = [];
+    
+    // Gabungkan data dari ongoing dan completed
+    const allAnime = [
+      ...(ongoingData?.results || []).slice(0, 10), // 10 anime ongoing terbaru
+      ...(completedData?.results || []).slice(0, 10) // 10 anime completed terbaru
+    ];
+    
+    // Generate paths untuk setiap anime
+    for (const anime of allAnime) {
+      if (anime.id && anime.slug) {
+        paths.push({
+          params: { id: anime.id, slug: anime.slug },
+          props: { preloaded: true }
+        });
+      }
+    }
+    
+    return paths;
+  } catch (error) {
+    console.error("Error generating static paths:", error);
+    return [];
+  }
+}
+
+// Get params
 const { id, slug } = Astro.params;
 const episode = Astro.url.searchParams.get("episode") ?? null;
+const preloaded = Astro.props.preloaded || false;
 
 // parameters validation
 if (!id || !slug) {
   return new Response(null, { status: 404, statusText: "Not Found" });
 }
 
-const res = await fetchAnimeData(id, slug);
-if (!res) {
+let data;
+let isError = false;
+
+try {
+  const res = await fetchAnimeData(id, slug);
+  if (!res) {
+    isError = true;
+  } else {
+    data = res;
+  }
+} catch (error) {
+  console.error("Error fetching anime data:", error);
+  isError = true;
+}
+
+// Jika ada error dan ini prerender, skip halaman ini
+if (isError && import.meta.env.PROD && preloaded) {
   return new Response(null, { status: 404, statusText: "Anime not found" });
 }
-const data = res;
+
+// Default data jika ada error tapi bukan saat prerender
+if (isError && !preloaded) {
+  data = {
+    results: {
+      title: "Loading...",
+      image: "/placeholder.jpg",
+      episode: [],
+      details: [],
+      description: "Loading data anime..."
+    }
+  };
+}
 
 // Ekstrak data episode dengan aman.
-const episodes = data.results.episode;
-const totalEp = episodes?.at(-1) ?? 1;
-const isFinished = data.results.details[2]?.data?.includes("Selesai");
+const episodes = data?.results?.episode || [];
+const totalEp = episodes?.at?.(-1) ?? 1;
+const isFinished = data?.results?.details?.[2]?.data?.includes?.("Selesai") || false;
 const checkEpSelesai = episode ?? (isFinished ? episodes[0] : totalEp);
 ---
 
@@ -29,9 +90,9 @@ const checkEpSelesai = episode ?? (isFinished ? episodes[0] : totalEp);
 <link rel="stylesheet" href="https://cdn.vidstack.io/player/theme.css" />
 <link rel="stylesheet" href="https://cdn.vidstack.io/player/video.css" />
 
-<Layout title={data.results.title} description="">
+<Layout title={data?.results?.title || "Loading..."} description="">
   <div class="flex justify-between items-center my-4">
-    <h1 class="text-xl font-bold line-clamp-1">{data.results.title}</h1>
+    <h1 class="text-xl font-bold line-clamp-1">{data?.results?.title || "Loading..."}</h1>
     <a href="/" class="btn btn-primary btn-sm gap-2">
       <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-left">
         <path d="m12 19-7-7 7-7"></path>
@@ -44,6 +105,7 @@ const checkEpSelesai = episode ?? (isFinished ? episodes[0] : totalEp);
   <div class="grid grid-cols-1 gap-2 my-2">
     <!-- Ini untuk menyimpan data agar si JSHT bisa membacanya, sebenarnya mungkin kurang bagus tapi ya sudahlah anggap aja a life hack -->
     <input id="episode" type="hidden" value={checkEpSelesai} />
+    <input id="anime-data-available" type="hidden" value={!isError} />
     
     <!-- Episode Selection Panel - Fixed position above video player -->
     <div class="bg-base-300 rounded-lg p-3 mb-2">
@@ -80,7 +142,7 @@ const checkEpSelesai = episode ?? (isFinished ? episodes[0] : totalEp);
       </p>
       <div
         id="player"
-        data-poster={data.results.image}
+        data-poster={data?.results?.image || ""}
         data-storage="player-storage"
         data-autoplay="true"
         data-playsinline
@@ -103,12 +165,65 @@ const checkEpSelesai = episode ?? (isFinished ? episodes[0] : totalEp);
     </div>
     
     <div class="p-2 rounded grid gap-2 bg-base-300">
-      <h1 class="text-center mt-2 font-bold text-lg">{data.results.title}</h1>
-      <Table data={data.results.details} />
-      <span>Sinopsis: </span><p set:html={data.results.description} />
+      <h1 class="text-center mt-2 font-bold text-lg">{data?.results?.title || "Loading..."}</h1>
+      {!isError && <Table data={data?.results?.details || []} />}
+      <span>Sinopsis: </span><p set:html={data?.results?.description || "Loading..."} />
     </div>
   </div>
 </Layout>
+
+<!-- Client only script untuk fallback loading jika data tidak tersedia -->
+<script>
+  const dataAvailable = document.getElementById("anime-data-available")?.value === "true";
+  
+  if (!dataAvailable) {
+    // Jika data tidak tersedia (halaman tidak ada di prerender), coba load data dari client side
+    async function loadAnimeData() {
+      try {
+        // Ambil ID dan slug dari URL
+        const parts = window.location.pathname.split("/");
+        const id = parts[2];
+        const slug = parts[3];
+        const episode = new URLSearchParams(window.location.search).get("episode") || null;
+        
+        // Import fungsi API dan load data
+        const { fetchAnimeData } = await import("/src/utils/api.js");
+        const data = await fetchAnimeData(id, slug);
+        
+        if (data) {
+          // Update UI dengan data yang di-fetch
+          document.querySelector("h1.text-xl").textContent = data.results.title;
+          document.querySelector("h1.text-center").textContent = data.results.title;
+          document.querySelector("[set\\:html]").innerHTML = data.results.description;
+          
+          // Update episode list jika belum ada
+          if (!document.querySelector(".episode-btn")) {
+            const episodeContainer = document.querySelector(".grid.grid-cols-5");
+            const episodes = data.results.episode || [];
+            const currentEp = episode || episodes[episodes.length - 1];
+            
+            episodeContainer.innerHTML = episodes.map(ep => `
+              <a 
+                href="/watch/${id}/${slug}?episode=${ep}"
+                data-episode="${ep}" 
+                class="episode-btn btn btn-sm ${ep == currentEp ? 'btn-primary' : 'btn-ghost'} w-full touch-manipulation"
+              >
+                ${ep}
+              </a>
+            `).join("");
+          }
+          
+          // Enable player initialization
+          document.getElementById("anime-data-available").value = "true";
+        }
+      } catch (error) {
+        console.error("Error loading anime data:", error);
+      }
+    }
+    
+    loadAnimeData();
+  }
+</script>
 
 <!-- Player initialization script -->
 <script>
@@ -117,7 +232,7 @@ const checkEpSelesai = episode ?? (isFinished ? episodes[0] : totalEp);
   initWatchPlayer();
 </script>
 
-<!-- Script untuk menyimpan riwayat tontonan -->
+<!-- Script untuk menyimpan riwayat tontonan dan tombol favorit -->
 <script is:inline>
   document.addEventListener('DOMContentLoaded', () => {
     // Mendapatkan informasi anime yang sedang ditonton
@@ -168,9 +283,10 @@ const checkEpSelesai = episode ?? (isFinished ? episodes[0] : totalEp);
     // Simpan ke riwayat saat halaman dimuat
     saveToWatchHistory();
     
-    // Tambahkan link ke halaman riwayat di dekat tombol kembali
+    // Tambahkan link ke halaman riwayat dan tombol favorit di dekat tombol kembali
     const backButton = document.querySelector('.flex.justify-between.items-center.my-4');
     if (backButton) {
+      // Tambahkan tombol riwayat
       const historyLink = document.createElement('a');
       historyLink.href = '/history';
       historyLink.className = 'btn btn-outline btn-sm flex items-center gap-1';
@@ -180,6 +296,99 @@ const checkEpSelesai = episode ?? (isFinished ? episodes[0] : totalEp);
         </svg>
         Riwayat
       `;
+      
+      // Tambahkan tombol favorit
+      const favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
+      const isFavorite = favorites.some(fav => fav.id === animeId);
+      
+      const favoriteBtn = document.createElement('button');
+      favoriteBtn.className = `btn ${isFavorite ? 'btn-primary' : 'btn-outline'} btn-sm flex items-center gap-1 mr-2`;
+      favoriteBtn.innerHTML = `
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="16"
+          height="16"
+          viewBox="0 0 24 24"
+          fill="${isFavorite ? 'currentColor' : 'none'}"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          class="lucide lucide-heart size-4"
+        >
+          <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" />
+        </svg>
+        ${isFavorite ? 'Favorit' : 'Tambah Favorit'}
+      `;
+      
+      favoriteBtn.addEventListener('click', () => {
+        // Toggle favorit
+        let favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
+        const isFavorite = favorites.some(fav => fav.id === animeId);
+        
+        if (isFavorite) {
+          favorites = favorites.filter(fav => fav.id !== animeId);
+          favoriteBtn.innerHTML = `
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              class="lucide lucide-heart size-4"
+            >
+              <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" />
+            </svg>
+            Tambah Favorit
+          `;
+          favoriteBtn.classList.remove('btn-primary');
+          favoriteBtn.classList.add('btn-outline');
+        } else {
+          favorites.push({
+            id: animeId,
+            title: animeTitle,
+            slug: animeSlug,
+            image: animeImage
+          });
+          favoriteBtn.innerHTML = `
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="currentColor"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              class="lucide lucide-heart size-4"
+            >
+              <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" />
+            </svg>
+            Favorit
+          `;
+          favoriteBtn.classList.remove('btn-outline');
+          favoriteBtn.classList.add('btn-primary');
+        }
+        
+        localStorage.setItem('favorites', JSON.stringify(favorites));
+        
+        // Update favorites count di semua halaman
+        const countElements = document.querySelectorAll('#favorites-count');
+        countElements.forEach(element => {
+          element.textContent = favorites.length;
+        });
+        
+        // Trigger storage event
+        window.dispatchEvent(new Event('storage'));
+      });
+      
+      // Tambahkan elemen ke UI
+      backButton.insertBefore(favoriteBtn, backButton.lastElementChild);
       backButton.insertBefore(historyLink, backButton.lastElementChild);
     }
   });
