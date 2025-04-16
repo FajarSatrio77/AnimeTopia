@@ -1,6 +1,6 @@
 # AnimeTopia
 
-Aplikasi streaming anime dengan Astro.js dan MySQL sebagai database.
+Aplikasi streaming anime dengan Astro.js
 
 ## Fitur Utama
 
@@ -8,11 +8,6 @@ Aplikasi streaming anime dengan Astro.js dan MySQL sebagai database.
 - Sistem login dan registrasi pengguna
 - Riwayat tontonan
 - Pencarian anime
-
-## Teknologi yang Digunakan
-
-- Frontend: Astro.js dengan Tailwind CSS
-- Backend: Express.js 
 
 ## Cara Memulai
 
