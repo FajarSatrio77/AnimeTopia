@@ -19,19 +19,6 @@ import Layout from "~/layouts/Layout.astro";
   </div>
 
   <div class="anime-login-container min-h-screen py-12 px-4 relative">
-    <!-- Anime elements background -->
-    <div class="anime-decoration-elements">
-      <div class="sakura-petal petal-1"></div>
-      <div class="sakura-petal petal-2"></div>
-      <div class="sakura-petal petal-3"></div>
-      <div class="sakura-petal petal-4"></div>
-      <div class="sakura-petal petal-5"></div>
-      <div class="sakura-petal petal-6"></div>
-      <div class="sakura-petal petal-7"></div>
-      <div class="sakura-petal petal-8"></div>
-      <div class="sakura-petal petal-9"></div>
-      <div class="sakura-petal petal-10"></div>
-    </div>
     
     <!-- Main container -->
     <div class="container mx-auto max-w-md relative z-10">
@@ -57,18 +44,8 @@ import Layout from "~/layouts/Layout.astro";
               <div class="user-info text-center mb-8">
                 <h3 id="profile-display-name" class="text-xl font-semibold text-white mb-1">Username</h3>
                 <p id="profile-email" class="text-sm text-indigo-200/70">user@example.com</p>
-              </div>
-              
-              <div class="stats grid grid-cols-3 gap-4 mb-8">
-                <div class="stat bg-indigo-800/30 p-3 rounded-lg text-center">
-                  <p class="text-xs text-indigo-200/70">Ditonton</p>
-                  <p class="text-xl font-bold text-white">0</p>
-                </div>
-                <div class="stat bg-indigo-800/30 p-3 rounded-lg text-center">
-                  <p class="text-xs text-indigo-200/70">Favorit</p>
-                  <p class="text-xl font-bold text-white" id="favorites-count">0</p>
-                  <a href="/favorites" class="text-xs text-indigo-300 hover:text-white transition-colors mt-1 block">Lihat Favorit</a>
-                </div>
+            </div>
+            
                 <div class="stat bg-indigo-800/30 p-3 rounded-lg text-center">
                   <p class="text-xs text-indigo-200/70">Ditandai</p>
                   <p class="text-xl font-bold text-white">0</p>
@@ -108,24 +85,24 @@ import Layout from "~/layouts/Layout.astro";
                     <input type="password" id="password" name="password" 
                       class="form-control" placeholder="Password" required>
                     <i class="input-icon uil uil-lock-alt"></i>
-                  </div>
-                  
-                  <div class="text-right">
+            </div>
+            
+            <div class="text-right">
                     <a href="#" class="text-xs text-pink-300 hover:text-white transition-colors">Forgot Password?</a>
-                  </div>
-                  
+            </div>
+            
                   <div class="hidden bg-red-900/50 text-red-200 text-sm p-3 rounded-lg border border-red-500/50 mt-4" id="login-error">
                     <div class="flex items-center">
-                      <svg class="h-5 w-5 mr-2 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
-                      </svg>
-                      <span>Username atau password salah</span>
-                    </div>
-                  </div>
-                  
+                <svg class="h-5 w-5 mr-2 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+                </svg>
+                <span>Username atau password salah</span>
+              </div>
+            </div>
+            
                   <button type="submit" id="login-button" class="btn-login">
-                    LOGIN
-                  </button>
+                LOGIN
+              </button>
                   
                   <div class="social-login">
                     <p class="text-center text-xs text-white/50 mb-3">Or sign in with</p>
@@ -147,62 +124,62 @@ import Layout from "~/layouts/Layout.astro";
                     <a href="#" id="show-register" class="text-pink-400 hover:text-pink-300">Sign up now</a>
                   </p>
                 </form>
-              </div>
-            </div>
           </div>
-          
-          <!-- Register Card -->
+        </div>
+      </div>
+      
+      <!-- Register Card -->
           <div id="register-card" class="card-3d-wrapper hidden">
             <div class="card-front">
               <div class="center-wrap">
                 <div class="card-header text-center mb-4">
                   <h2 class="text-2xl font-bold mb-1 text-white">Join AnimeTopia</h2>
                   <p class="text-sm text-indigo-200/70">Create your account</p>
-                </div>
-                
+        </div>
+        
                 <form id="register-form" class="space-y-5">
                   <div class="form-group">
                     <input type="text" id="reg-username" name="username" 
                       class="form-control" placeholder="Username" required>
                     <i class="input-icon uil uil-user"></i>
-                  </div>
-                  
+            </div>
+            
                   <div class="form-group">
                     <input type="email" id="reg-email" name="email" 
                       class="form-control" placeholder="Email" required>
                     <i class="input-icon uil uil-at"></i>
-                  </div>
-                  
+            </div>
+            
                   <div class="form-group">
                     <input type="password" id="reg-password" name="password" 
                       class="form-control" placeholder="Password" required>
                     <i class="input-icon uil uil-lock-alt"></i>
-                  </div>
-                  
+            </div>
+            
                   <div class="form-group">
                     <input type="password" id="reg-confirm-password" name="confirm_password" 
                       class="form-control" placeholder="Confirm Password" required>
                     <i class="input-icon uil uil-lock-access"></i>
-                  </div>
-                  
+            </div>
+            
                   <div class="hidden bg-red-900/50 text-red-200 text-sm p-3 rounded-lg border border-red-500/50 mt-4" id="register-error">
                     <div class="flex items-center">
-                      <svg class="h-5 w-5 mr-2 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
-                      </svg>
-                      <span>Username atau email sudah digunakan</span>
-                    </div>
-                  </div>
-                  
+                <svg class="h-5 w-5 mr-2 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+                </svg>
+                <span>Username atau email sudah digunakan</span>
+              </div>
+            </div>
+            
                   <div class="flex items-center space-x-2 ml-1">
                     <input id="remember-me" name="remember-me" type="checkbox" 
                       class="w-4 h-4 text-indigo-500 bg-transparent border-2 border-white/30 rounded focus:ring-0">
                     <label for="remember-me" class="text-sm text-white/70">Remember me</label>
-                  </div>
-                  
+            </div>
+            
                   <button type="submit" id="register-button" class="btn-register">
                     SIGN UP
-                  </button>
+              </button>
                   
                   <p class="text-center mt-6 text-white/70 text-sm">
                     Already a member? 
@@ -434,9 +411,7 @@ import Layout from "~/layouts/Layout.astro";
     const logoutButton = document.getElementById('logout-button');
     if (logoutButton) {
       logoutButton.addEventListener('click', async () => {
-        localStorage.removeItem('animetopia_user');
-        localStorage.clear();
-        window.location.href = '/akun';
+        await logoutUser();
       });
     }
     
@@ -475,15 +450,31 @@ import Layout from "~/layouts/Layout.astro";
             loginButton.textContent = 'Loading...';
           }
           
+          // Hapus data user lama dari localStorage sebelum login
+          localStorage.removeItem('animetopia_user');
+          
           console.log("Attempting login for:", email);
           const loginResult = await loginUser(email, password);
           
           if (loginResult.success) {
-            console.log("Login successful, redirecting to ongoing page...");
+            console.log("Login successful:", loginResult.user);
+            
             // Simpan data user ke localStorage
             localStorage.setItem('animetopia_user', JSON.stringify(loginResult.user));
-            // Redirect ke halaman ongoing
-            window.location.href = '/';
+            
+            // Trigger storage event untuk memperbarui UI
+            window.dispatchEvent(new Event('storage'));
+            
+            // Show success message briefly
+            alert('Login berhasil! Redirecting...');
+            
+            // Redirect ke halaman ongoing dengan refresh penuh
+            window.location.href = '/ongoing';
+            
+            // Force full page reload to ensure all UI components update
+            setTimeout(() => {
+              window.location.reload();
+            }, 100);
           } else {
             console.log("Login failed:", loginResult.message);
             if (loginError) {
@@ -501,7 +492,7 @@ import Layout from "~/layouts/Layout.astro";
             if (spanElement) {
               spanElement.textContent = 'Terjadi kesalahan saat login. Silakan coba lagi.';
             }
-            loginError.classList.remove('hidden');
+          loginError.classList.remove('hidden');
           }
         } finally {
           // Re-enable login button
@@ -613,14 +604,17 @@ import Layout from "~/layouts/Layout.astro";
             registerButton.removeAttribute('disabled');
           }
           
-            // Show success message
-            alert('Pendaftaran berhasil! Silakan login.');
+          // Hapus data user lama jika ada untuk mencegah login otomatis
+          localStorage.removeItem('animetopia_user');
             
-            // Pre-fill login form with the registered email for convenience
-            const emailInput = document.getElementById('email') as HTMLInputElement;
-            if (emailInput) {
-              emailInput.value = email;
-            }
+          // Show success message
+          alert('Pendaftaran berhasil! Silakan login.');
+            
+          // Pre-fill login form with the registered email for convenience
+          const emailInput = document.getElementById('email') as HTMLInputElement;
+          if (emailInput) {
+            emailInput.value = email;
+          }
             
           // Switch to login view
             showLoginForm();
@@ -636,8 +630,8 @@ import Layout from "~/layouts/Layout.astro";
           }
           
           if (registerError) {
-            const spanElement = registerError.querySelector('span');
-            if (spanElement) {
+          const spanElement = registerError.querySelector('span');
+          if (spanElement) {
               spanElement.textContent = error.message || 'Terjadi kesalahan saat pendaftaran. Silakan coba lagi.';
             }
             registerError.classList.remove('hidden');

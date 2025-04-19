@@ -18,7 +18,8 @@
         <li><a href="/">Ongoing</a></li>
         <li><a href="/completed">Completed</a></li>
         <li><a href="/history">Riwayat Tontonan</a></li>
-        <li><a href="/akun">profile</a></li>
+        <li><a href="/favorites">Favorit <span id="mobile-favorites-count" class="badge badge-sm badge-primary ml-1 hidden">0</span></a></li>
+        <li id="mobile-profile-menu"><a href="/akun" class={Astro.url.pathname === "/akun" ? "active" : ""}>Profile</a></li>
       </ul>
     </div>
     
@@ -28,7 +29,8 @@
         <li><a href="/" class={Astro.url.pathname === "/" ? "active" : ""}>Ongoing</a></li>
         <li><a href="/completed" class={Astro.url.pathname === "/completed" ? "active" : ""}>Completed</a></li>
         <li><a href="/history" class={Astro.url.pathname === "/history" ? "active" : ""}>Riwayat Tontonan</a></li>
-        <li><a href="/akun" class={Astro.url.pathname === "/akun" ? "active" : ""}>Profile</a></li>
+        <li><a href="/favorites" class={Astro.url.pathname === "/favorites" ? "active" : ""}>Favorit <span id="favorites-count" class="badge badge-sm badge-primary ml-1 hidden">0</span></a></li>
+        <li id="desktop-profile-menu"><a href="/akun" class={Astro.url.pathname === "/akun" ? "active" : ""}>Profile</a></li>
       </ul>
     </div>
   </div>
@@ -190,5 +192,88 @@
         link.classList.add('active');
       }
     });
+    
+    // Update favorites count
+    updateFavoritesCount();
+    
+    // Listen for storage events to update favorites count
+    window.addEventListener('storage', updateFavoritesCount);
+    
+    // Handle profile menu visibility
+    updateProfileMenuVisibility();
+    
+    // Listen for login/logout events
+    window.addEventListener('storage', updateProfileMenuVisibility);
   });
+  
+  // Fungsi untuk memperbarui jumlah favorit
+  function updateFavoritesCount() {
+    const countElements = document.querySelectorAll('#favorites-count, #mobile-favorites-count');
+    const userData = localStorage.getItem('animetopia_user');
+    
+    if (userData) {
+      try {
+        // Pastikan data user valid
+        const user = JSON.parse(userData);
+        if (user && user.uid) {
+          // Cek favorites untuk user ini
+          const key = `favorites_${user.uid}`;
+          const favoritesData = localStorage.getItem(key);
+          const favorites = favoritesData ? JSON.parse(favoritesData) : [];
+          
+          countElements.forEach(el => {
+            if (el instanceof HTMLElement) {
+              if (favorites.length > 0) {
+                el.textContent = String(favorites.length);
+                el.classList.remove('hidden');
+              } else {
+                el.classList.add('hidden');
+              }
+            }
+          });
+          return;
+        }
+      } catch (e) {
+        console.error("Error parsing user data for favorites:", e);
+      }
+    }
+    
+    // Jika tidak login atau error, sembunyikan badge
+    countElements.forEach(el => {
+      if (el instanceof HTMLElement) {
+        el.classList.add('hidden');
+      }
+    });
+  }
+  
+  // Fungsi untuk memperbarui visibilitas menu profil
+  function updateProfileMenuVisibility() {
+    const mobileProfileMenu = document.getElementById('mobile-profile-menu');
+    const desktopProfileMenu = document.getElementById('desktop-profile-menu');
+    
+    // Menggunakan localStorage langsung untuk pengecekan login status
+    const userData = localStorage.getItem('animetopia_user');
+    
+    // Pastikan menu profil selalu terlihat
+    if (mobileProfileMenu) mobileProfileMenu.classList.remove('hidden');
+    if (desktopProfileMenu) desktopProfileMenu.classList.remove('hidden');
+    
+    // Jika ada user data yang valid, bisa ditambahkan kelas atau atribut khusus
+    if (userData) {
+      try {
+        const user = JSON.parse(userData);
+        if (user && user.uid) {
+          // Tambahkan indikator user login jika diperlukan
+          if (mobileProfileMenu) mobileProfileMenu.setAttribute('data-logged-in', 'true');
+          if (desktopProfileMenu) desktopProfileMenu.setAttribute('data-logged-in', 'true');
+        }
+      } catch (e) {
+        console.error("Error parsing user data:", e);
+      }
+    } else {
+      // Hapus indikator login jika ada
+      if (mobileProfileMenu) mobileProfileMenu.removeAttribute('data-logged-in');
+      if (desktopProfileMenu) desktopProfileMenu.removeAttribute('data-logged-in');
+    }
+  }
 </script>

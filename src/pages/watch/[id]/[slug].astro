@@ -93,13 +93,14 @@ const checkEpSelesai = episode ?? (isFinished ? episodes[0] : totalEp);
 <Layout title={data?.results?.title || "Loading..."} description="">
   <div class="flex justify-between items-center my-4">
     <h1 class="text-xl font-bold line-clamp-1">{data?.results?.title || "Loading..."}</h1>
-    <a href="/" class="btn btn-primary btn-sm gap-2">
-      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-left">
-        <path d="m12 19-7-7 7-7"></path>
-        <path d="M19 12H5"></path>
-      </svg>
-      Kembali ke Ongoing
-    </a>
+    <div class="flex gap-2">
+      <a href="/history" class="btn btn-outline btn-sm flex items-center gap-1">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd" />
+        </svg>
+        Riwayat
+      </a>
+    </div>
   </div>
   
   <div class="grid grid-cols-1 gap-2 my-2">
@@ -161,6 +162,24 @@ const checkEpSelesai = episode ?? (isFinished ? episodes[0] : totalEp);
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="ml-1"><polyline points="9 18 15 12 9 6"></polyline></svg>
           </button>
         </div>
+        
+        <button id="favoriteButton" class="btn btn-sm btn-outline">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            class="lucide lucide-heart heart-icon"
+          >
+            <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" />
+          </svg>
+          <span class="ml-1 favorite-text">Favorit</span>
+        </button>
       </div>
     </div>
     
@@ -232,9 +251,13 @@ const checkEpSelesai = episode ?? (isFinished ? episodes[0] : totalEp);
   initWatchPlayer();
 </script>
 
-<!-- Script untuk menyimpan riwayat tontonan dan tombol favorit -->
+<!-- Script untuk menyimpan riwayat tontonan dan mengelola favorit -->
 <script is:inline>
-  document.addEventListener('DOMContentLoaded', () => {
+  document.addEventListener('DOMContentLoaded', async () => {
+    // Import fungsi favorit
+    const { isFavorite, toggleFavorite } = await import('/src/utils/favorites.js');
+    const { getCurrentUser } = await import('/src/utils/auth.js');
+    
     // Mendapatkan informasi anime yang sedang ditonton
     const animeId = window.location.pathname.split('/')[2];
     const animeSlug = window.location.pathname.split('/')[3];
@@ -283,113 +306,67 @@ const checkEpSelesai = episode ?? (isFinished ? episodes[0] : totalEp);
     // Simpan ke riwayat saat halaman dimuat
     saveToWatchHistory();
     
-    // Tambahkan link ke halaman riwayat dan tombol favorit di dekat tombol kembali
-    const backButton = document.querySelector('.flex.justify-between.items-center.my-4');
-    if (backButton) {
-      // Tambahkan tombol riwayat
-      const historyLink = document.createElement('a');
-      historyLink.href = '/history';
-      historyLink.className = 'btn btn-outline btn-sm flex items-center gap-1';
-      historyLink.innerHTML = `
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-          <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd" />
-        </svg>
-        Riwayat
-      `;
+    // Kelola tombol favorit
+    const favoriteButton = document.getElementById('favoriteButton');
+    if (favoriteButton) {
+      const favoriteIcon = favoriteButton.querySelector('svg');
+      const favoriteText = favoriteButton.querySelector('.favorite-text');
       
-      // Tambahkan tombol favorit
-      const favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
-      const isFavorite = favorites.some(fav => fav.id === animeId);
+      // Periksa jika user sudah login
+      const user = getCurrentUser();
       
-      const favoriteBtn = document.createElement('button');
-      favoriteBtn.className = `btn ${isFavorite ? 'btn-primary' : 'btn-outline'} btn-sm flex items-center gap-1 mr-2`;
-      favoriteBtn.innerHTML = `
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          width="16"
-          height="16"
-          viewBox="0 0 24 24"
-          fill="${isFavorite ? 'currentColor' : 'none'}"
-          stroke="currentColor"
-          stroke-width="2"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          class="lucide lucide-heart size-4"
-        >
-          <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" />
-        </svg>
-        ${isFavorite ? 'Favorit' : 'Tambah Favorit'}
-      `;
+      if (!user) {
+        // Jika belum login, jadikan tombol sebagai link ke halaman login
+        favoriteButton.addEventListener('click', (e) => {
+          e.preventDefault();
+          window.location.href = '/akun';
+        });
+        favoriteText.textContent = 'Login untuk Favorit';
+        return;
+      }
       
-      favoriteBtn.addEventListener('click', () => {
-        // Toggle favorit
-        let favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
-        const isFavorite = favorites.some(fav => fav.id === animeId);
-        
-        if (isFavorite) {
-          favorites = favorites.filter(fav => fav.id !== animeId);
-          favoriteBtn.innerHTML = `
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="16"
-              height="16"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              class="lucide lucide-heart size-4"
-            >
-              <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" />
-            </svg>
-            Tambah Favorit
-          `;
-          favoriteBtn.classList.remove('btn-primary');
-          favoriteBtn.classList.add('btn-outline');
-        } else {
-          favorites.push({
-            id: animeId,
-            title: animeTitle,
-            slug: animeSlug,
-            image: animeImage
-          });
-          favoriteBtn.innerHTML = `
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="16"
-              height="16"
-              viewBox="0 0 24 24"
-              fill="currentColor"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              class="lucide lucide-heart size-4"
-            >
-              <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" />
-            </svg>
-            Favorit
-          `;
-          favoriteBtn.classList.remove('btn-outline');
-          favoriteBtn.classList.add('btn-primary');
-        }
-        
-        localStorage.setItem('favorites', JSON.stringify(favorites));
-        
-        // Update favorites count di semua halaman
-        const countElements = document.querySelectorAll('#favorites-count');
-        countElements.forEach(element => {
-          element.textContent = favorites.length;
+      // Cek status favorit dari fungsi isFavorite
+      const isFav = isFavorite(animeId);
+      
+      // Set tampilan awal berdasarkan status
+      if (isFav) {
+        favoriteIcon.setAttribute('fill', 'currentColor');
+        favoriteButton.classList.remove('btn-outline');
+        favoriteButton.classList.add('btn-pink');
+        favoriteText.textContent = 'Favorit';
+      } else {
+        favoriteIcon.setAttribute('fill', 'none');
+        favoriteButton.classList.add('btn-outline');
+        favoriteButton.classList.remove('btn-pink');
+        favoriteText.textContent = 'Favorit';
+      }
+      
+      // Tambahkan event listener untuk toggle favorit
+      favoriteButton.addEventListener('click', () => {
+        // Toggle favorit menggunakan fungsi toggleFavorite
+        const isFav = toggleFavorite({
+          id: animeId,
+          slug: animeSlug,
+          title: animeTitle,
+          image: animeImage
         });
         
-        // Trigger storage event
+        // Update tampilan tombol
+        if (isFav) {
+          favoriteIcon.setAttribute('fill', 'currentColor');
+          favoriteButton.classList.remove('btn-outline');
+          favoriteButton.classList.add('btn-pink');
+          favoriteText.textContent = 'Favorit';
+        } else {
+          favoriteIcon.setAttribute('fill', 'none');
+          favoriteButton.classList.add('btn-outline');
+          favoriteButton.classList.remove('btn-pink');
+          favoriteText.textContent = 'Favorit';
+        }
+        
+        // Trigger storage event untuk pembaruan lintas tab
         window.dispatchEvent(new Event('storage'));
       });
-      
-      // Tambahkan elemen ke UI
-      backButton.insertBefore(favoriteBtn, backButton.lastElementChild);
-      backButton.insertBefore(historyLink, backButton.lastElementChild);
     }
   });
 </script>
@@ -409,6 +386,57 @@ const checkEpSelesai = episode ?? (isFinished ? episodes[0] : totalEp);
     max-height: 180px;
     overflow-y: auto;
     -webkit-overflow-scrolling: touch; /* Untuk smooth scrolling di iOS */
+  }
+  
+  /* Efek klik untuk tombol favorit */
+  #favoriteButton {
+    transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+  }
+  
+  #favoriteButton:active {
+    background-color: #f472b6 !important; /* Pink color when clicked */
+    border-color: #f472b6 !important;
+    color: white !important;
+    animation: pinkPulse 0.5s ease;
+  }
+  
+  @keyframes pinkPulse {
+    0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(236, 72, 153, 0.7); }
+    50% { transform: scale(1.05); box-shadow: 0 0 0 15px rgba(236, 72, 153, 0); }
+    100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(236, 72, 153, 0); }
+  }
+  
+  /* Style for the heart icon */
+  .heart-icon {
+    transition: transform 0.3s ease, fill 0.3s ease;
+  }
+  
+  #favoriteButton:hover .heart-icon {
+    transform: scale(1.2);
+  }
+  
+  #favoriteButton:active .heart-icon {
+    transform: scale(1.1);
+    fill: #f472b6 !important;
+    filter: drop-shadow(0 0 3px rgba(255, 192, 203, 0.8));
+  }
+  
+  /* Custom button style untuk favorit */
+  .btn-pink {
+    background-color: #ec4899 !important; /* Pink-500 */
+    border-color: #ec4899 !important;
+    color: white !important;
+  }
+  
+  .btn-pink:hover {
+    background-color: #db2777 !important; /* Pink-600 */
+    border-color: #db2777 !important;
+    box-shadow: 0 0 8px rgba(236, 72, 153, 0.6);
+  }
+  
+  .btn-pink .heart-icon {
+    fill: white !important;
+    filter: drop-shadow(0 0 2px rgba(255, 255, 255, 0.5));
   }
   
   /* Membuat grid lebih responsive */

@@ -63,9 +63,9 @@ export async function loginUser(email, password) {
     const userToStore = {
       uid: userDoc.id,
       email: userData.email,
-      nama: userData.nama,
+      nama: userData.nama || email.split('@')[0], // Fallback jika tidak ada nama
       password: userData.password,
-      createdAt: userData.createdAt,
+      createdAt: userData.createdAt || new Date().toISOString(),
       isLoggedIn: true,
       lastLoginAt: new Date().toISOString()
     };
@@ -75,6 +75,9 @@ export async function loginUser(email, password) {
       ...userData,
       lastLoginAt: new Date()
     }, { merge: true });
+    
+    // 6. Hapus data user lama dari localStorage sebelum menyimpan yang baru
+    localStorage.removeItem('animetopia_user');
 
     return {
       success: true,
@@ -232,7 +235,11 @@ export async function logoutUser() {
     localStorage.removeItem('animetopia_user');
     
     // Reset state lainnya jika ada
-    localStorage.clear();
+    localStorage.removeItem('favorites');
+    localStorage.removeItem('animeWatchHistory');
+    
+    // Trigger storage event untuk memperbarui UI
+    window.dispatchEvent(new Event('storage'));
     
     // Redirect ke halaman login
     window.location.href = '/akun';
@@ -249,24 +256,139 @@ export async function logoutUser() {
  * @returns {Function} Unsubscribe function
  */
 export function setupAuthStateListener(callback) {
-  // Implementasi sederhana dengan localStorage event
-  const checkAuthState = () => {
-    const user = getCurrentUser();
-    callback(user);
-  };
-  
-  // Panggil pertama kali untuk inisialisasi
-  checkAuthState();
-  
-  // Listen untuk event storage untuk mendeteksi perubahan login state
-  window.addEventListener('storage', (event) => {
-    if (event.key === 'animetopia_user') {
-      checkAuthState();
+  // Gunakan Firebase auth state listener
+  const unsubFirebase = onAuthStateChanged(auth, (user) => {
+    if (user) {
+      // User sedang login di Firebase
+      const userData = {
+        uid: user.uid,
+        email: user.email,
+        displayName: user.displayName || user.email?.split('@')[0],
+        lastLogin: new Date().toISOString()
+      };
+      
+      if (callback) callback(userData);
+    } else {
+      // User logout dari Firebase
+      if (callback) callback(null);
     }
   });
   
+  // Juga tambahkan listener untuk localStorage untuk state management
+  const handleStorageChange = () => {
+    const userData = localStorage.getItem('animetopia_user');
+    
+    if (userData) {
+      try {
+        const user = JSON.parse(userData);
+        if (callback && user) callback(user);
+      } catch (e) {
+        console.error("Error parsing user data from storage:", e);
+        localStorage.removeItem('animetopia_user');
+        if (callback) callback(null);
+      }
+    } else {
+      if (callback) callback(null);
+    }
+  };
+  
+  window.addEventListener('storage', handleStorageChange);
+  
+  // Pemeriksaan awal
+  handleStorageChange();
+  
   // Return unsubscribe function
   return () => {
-    window.removeEventListener('storage', checkAuthState);
+    unsubFirebase();
+    window.removeEventListener('storage', handleStorageChange);
   };
+}
+
+/**
+ * Mendapatkan daftar anime favorit untuk user yang sedang login
+ * @returns {Array} Daftar anime favorit
+ */
+export function getUserFavorites() {
+  const user = getCurrentUser();
+  if (!user) return [];
+  
+  // Menggunakan user ID sebagai key untuk menyimpan favorit
+  const key = `favorites_${user.uid}`;
+  const favorites = localStorage.getItem(key);
+  return favorites ? JSON.parse(favorites) : [];
+}
+
+/**
+ * Menambahkan anime ke daftar favorit user
+ * @param {Object} anime Data anime yang akan ditambahkan ke favorit
+ * @returns {boolean} True jika berhasil, false jika gagal
+ */
+export function addToFavorites(anime) {
+  const user = getCurrentUser();
+  if (!user) return false;
+  
+  const key = `favorites_${user.uid}`;
+  const favorites = getUserFavorites();
+  
+  // Cek apakah anime sudah ada di favorit
+  if (favorites.some(fav => fav.id === anime.id)) {
+    return false; // Anime sudah ada di favorit
+  }
+  
+  // Tambahkan anime ke favorit
+  favorites.push({
+    id: anime.id,
+    slug: anime.slug,
+    title: anime.title,
+    image: anime.image,
+    addedAt: new Date().toISOString()
+  });
+  
+  // Simpan kembali ke localStorage
+  localStorage.setItem(key, JSON.stringify(favorites));
+  
+  // Trigger storage event
+  window.dispatchEvent(new Event('storage'));
+  
+  return true;
+}
+
+/**
+ * Menghapus anime dari daftar favorit user
+ * @param {string} animeId ID anime yang akan dihapus
+ * @returns {boolean} True jika berhasil, false jika gagal
+ */
+export function removeFromFavorites(animeId) {
+  const user = getCurrentUser();
+  if (!user) return false;
+  
+  const key = `favorites_${user.uid}`;
+  let favorites = getUserFavorites();
+  
+  // Filter anime yang akan dihapus
+  const initialLength = favorites.length;
+  favorites = favorites.filter(fav => fav.id !== animeId);
+  
+  // Jika tidak ada yang dihapus, return false
+  if (favorites.length === initialLength) {
+    return false;
+  }
+  
+  // Simpan kembali ke localStorage
+  localStorage.setItem(key, JSON.stringify(favorites));
+  
+  // Trigger storage event
+  window.dispatchEvent(new Event('storage'));
+  
+  return true;
+}
+
+/**
+ * Cek apakah anime sudah menjadi favorit
+ * @param {string} animeId ID anime yang dicek
+ * @returns {boolean} True jika sudah favorit, false jika belum
+ */
+export function isFavorite(animeId) {
+  const favorites = getUserFavorites();
+  return favorites.some(fav => fav.id === animeId);
 } 
