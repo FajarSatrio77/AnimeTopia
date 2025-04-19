@@ -22,15 +22,7 @@ Aplikasi streaming anime dengan Astro.js
 npm install
 ```
 
-### Langkah 2: Jalankan Server API
-
-```bash
-npm run server
-```
-
-Server API akan berjalan di http://localhost:8000
-
-### Langkah 3: Jalankan Aplikasi Frontend
+### Langkah 2: Jalankan Aplikasi Frontend
 
 Dalam terminal terpisah, jalankan:
 
