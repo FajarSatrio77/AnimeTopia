@@ -19,7 +19,7 @@ Website streaming anime dengan Astro.js
 ### Instalasi
 
 ```bash
-git clone https://github.com/username/AnimeTopia.git
+https://github.com/FajarSatrio77/AnimeTopia.git
 
 cd AnimeTopia
 
