@@ -1,6 +1,6 @@
 # AnimeTopia
 
-Aplikasi streaming anime dengan Astro.js
+Website streaming anime dengan Astro.js
 
 ## Fitur Utama
 
@@ -19,18 +19,12 @@ Aplikasi streaming anime dengan Astro.js
 ### Langkah 1: Install Dependencies
 
 ```bash
+git clone https://github.com/username/AnimeTopia.git
+cd AnimeTopia
 npm install
-```
-
-### Langkah 2: Jalankan Aplikasi Frontend
-
-Dalam terminal terpisah, jalankan:
-
-```bash
 npm run dev
-```
 
-Aplikasi frontend akan berjalan di http://localhost:4321
+Website akan berjalan di http://localhost:4321
 
 ## Struktur Aplikasi
 
