@@ -16,13 +16,17 @@ Website streaming anime dengan Astro.js
 - Node.js (versi 16 atau lebih tinggi)
 - NPM 
 
-### Langkah 1: Install Dependencies
+### Instalasi
 
 ```bash
 git clone https://github.com/username/AnimeTopia.git
+
 cd AnimeTopia
+
 npm install
+
 npm run dev
+```
 
 Website akan berjalan di http://localhost:4321
 
