@@ -1,0 +1,159 @@
+---
+// Frontmatter goes here - client-side only implementation
+---
+
+<div class="dropdown dropdown-end user-menu" data-logged-in="false">
+  <!-- Avatar button (showing initial) -->
+  <div tabindex="0" role="button" class="btn btn-ghost btn-circle avatar placeholder logged-user-only">
+    <div class="bg-gradient-to-br from-indigo-500 to-purple-600 text-white rounded-full w-10">
+      <span id="desktop-user-initial">U</span>
+    </div>
+  </div>
+  
+  <!-- Login button for guests -->
+  <div class="guest-only">
+    <a href="/akun" class="btn btn-sm btn-primary btn-outline">
+      Login
+    </a>
+  </div>
+  
+  <!-- Dropdown menu -->
+  <ul tabindex="0" class="mt-3 z-10 p-2 shadow menu menu-sm dropdown-content bg-base-100 rounded-box w-52 logged-user-only">
+    <li class="menu-title px-2 pt-1 pb-2">
+      <div class="flex flex-col">
+        <span id="user-display-name" class="font-semibold text-base">Username</span>
+        <span id="user-email" class="text-xs opacity-70">email@example.com</span>
+      </div>
+    </li>
+    <li><a href="/favorites" class="flex justify-between">Favorit <span id="desktop-favorites-count" class="badge badge-sm badge-primary ml-1 hidden">0</span></a></li>
+    <li><a href="/history">Riwayat Tontonan</a></li>
+    <li class="divider my-1"></li>
+    <li><a href="/akun">Profil</a></li>
+    <li><a href="#" class="logout-link">Logout</a></li>
+  </ul>
+</div>
+
+<style>
+  /* Hide/show elements based on login status */
+  .user-menu[data-logged-in="false"] .logged-user-only {
+    display: none;
+  }
+  
+  .user-menu[data-logged-in="true"] .guest-only {
+    display: none;
+  }
+  
+  /* Avatar Styling */
+  .avatar.placeholder .w-10 {
+    width: 2.5rem;
+    height: 2.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s;
+  }
+  
+  .avatar.placeholder:hover .w-10 {
+    background: linear-gradient(45deg, #4A9FFF, #7C4DFF);
+    transform: scale(1.05);
+    box-shadow: 0 0 8px rgba(124, 77, 255, 0.5);
+  }
+</style>
+
+<script>
+  // Update user information in desktop menu
+  function updateUserInfo() {
+    try {
+      // Get user info
+      const userData = localStorage.getItem('animetopia_user');
+      if (!userData) return;
+      
+      const user = JSON.parse(userData);
+      
+      // Update display name
+      const displayNameEl = document.getElementById('user-display-name');
+      if (displayNameEl && user.displayName) {
+        displayNameEl.textContent = user.displayName;
+      }
+      
+      // Update email
+      const emailEl = document.getElementById('user-email');
+      if (emailEl && user.email) {
+        emailEl.textContent = user.email;
+      }
+      
+      // Update avatar initial
+      const initialEl = document.getElementById('desktop-user-initial');
+      if (initialEl && user.displayName) {
+        initialEl.textContent = user.displayName.charAt(0).toUpperCase();
+      }
+      
+      // Update favorites count
+      updateDesktopFavoritesCount(user.uid);
+    } catch (error) {
+      console.error('Error updating user info:', error);
+    }
+  }
+  
+  // Update favorites count in desktop menu
+  function updateDesktopFavoritesCount(userId) {
+    if (!userId) return;
+    
+    const countEl = document.getElementById('desktop-favorites-count');
+    if (!countEl) return;
+    
+    try {
+      const key = `favorites_${userId}`;
+      const favoritesData = localStorage.getItem(key);
+      const favorites = favoritesData ? JSON.parse(favoritesData) : [];
+      
+      if (favorites.length > 0) {
+        countEl.textContent = favorites.length.toString();
+        countEl.classList.remove('hidden');
+      } else {
+        countEl.classList.add('hidden');
+      }
+    } catch (error) {
+      console.error('Error updating desktop favorites count:', error);
+      countEl.classList.add('hidden');
+    }
+  }
+  
+  // Check if user is logged in and update UI accordingly
+  function checkUserMenuLoginStatus() {
+    try {
+      const userMenu = document.querySelector('.user-menu');
+      if (!userMenu) return;
+      
+      const userData = localStorage.getItem('animetopia_user');
+      
+      if (userData) {
+        userMenu.setAttribute('data-logged-in', 'true');
+        updateUserInfo();
+      } else {
+        userMenu.setAttribute('data-logged-in', 'false');
+      }
+    } catch (error) {
+      console.error('Error checking user menu login status:', error);
+    }
+  }
+  
+  // Initialize on page load
+  document.addEventListener('DOMContentLoaded', () => {
+    checkUserMenuLoginStatus();
+    
+    // Listen for storage changes (login/logout)
+    window.addEventListener('storage', (e) => {
+      if (e.key === 'animetopia_user' || e.key?.startsWith('favorites_')) {
+        checkUserMenuLoginStatus();
+      }
+    });
+    
+    // Check periodically
+    setInterval(checkUserMenuLoginStatus, 2000);
+  });
+  
+  // Also run on Astro view transitions
+  document.addEventListener('astro:page-load', checkUserMenuLoginStatus);
+  document.addEventListener('astro:after-swap', checkUserMenuLoginStatus);
+</script> 

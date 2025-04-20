@@ -252,106 +252,84 @@ const checkEpSelesai = episode ?? (isFinished ? episodes[0] : totalEp);
 </script>
 
 <!-- Script untuk menyimpan riwayat tontonan dan mengelola favorit -->
-<script is:inline>
+<script is:inline define:vars={{ id, slug, episode }}>
+  const animeId = id;
+  const animeSlug = slug;
+  const currentEpisode = episode || document.getElementById('episode')?.value || '1';
+  
+  // Preload essential modules for faster UI response
+  let favoritesModule, watchHistoryModule, authModule;
+  
+  // Preload modules in the background
+  const preloadModules = async () => {
+    try {
+      [favoritesModule, watchHistoryModule, authModule] = await Promise.all([
+        import('/src/utils/favorites.js'),
+        import('/src/utils/watch-history.js'),
+        import('/src/utils/auth.js')
+      ]);
+    } catch (error) {
+      console.error("Error preloading modules:", error);
+    }
+  };
+  
+  // Start preloading immediately
+  preloadModules();
+  
   document.addEventListener('DOMContentLoaded', async () => {
-    // Import fungsi favorit
-    const { isFavorite, toggleFavorite } = await import('/src/utils/favorites.js');
-    const { getCurrentUser } = await import('/src/utils/auth.js');
-    
-    // Mendapatkan informasi anime yang sedang ditonton
-    const animeId = window.location.pathname.split('/')[2];
-    const animeSlug = window.location.pathname.split('/')[3];
-    const episodeParam = new URLSearchParams(window.location.search).get('episode');
-    const episodeNumber = episodeParam || document.getElementById('episode')?.value || '1';
-    const animeTitle = document.querySelector('h1.text-xl')?.textContent || '';
-    const animeImage = document.querySelector('#player')?.getAttribute('data-poster') || '';
-    
-    // Fungsi untuk menyimpan riwayat tontonan
-    function saveToWatchHistory() {
-      // Dapatkan riwayat yang sudah ada atau buat array baru jika belum ada
-      const existingHistory = localStorage.getItem('animeWatchHistory');
-      let watchHistory = existingHistory ? JSON.parse(existingHistory) : [];
+    try {
+      // Wait for modules to load if not already loaded
+      if (!favoritesModule || !watchHistoryModule || !authModule) {
+        [favoritesModule, watchHistoryModule, authModule] = await Promise.all([
+          import('/src/utils/favorites.js'),
+          import('/src/utils/watch-history.js'),
+          import('/src/utils/auth.js')
+        ]);
+      }
       
-      // Cek apakah anime sudah ada di riwayat
-      const existingAnimeIndex = watchHistory.findIndex(item => item.id === animeId);
+      const { isFavorite, toggleFavorite } = favoritesModule;
+      const { saveToWatchHistory } = watchHistoryModule;
+      const { getCurrentUser } = authModule;
       
-      // Data anime yang akan disimpan
-      const animeData = {
+      // Mendapatkan informasi anime yang sedang ditonton
+      const animeTitle = document.querySelector('h1.text-xl')?.textContent || '';
+      const animeImage = document.querySelector('#player')?.getAttribute('data-poster') || '';
+      
+      console.time('saveWatchHistory');
+      // Simpan ke riwayat tontonan dengan optimized performance
+      saveToWatchHistory({
         id: animeId,
         slug: animeSlug,
         title: animeTitle,
-        episode: episodeNumber,
-        image: animeImage,
-        lastWatched: new Date().toISOString()
-      };
+        episode: currentEpisode,
+        image: animeImage
+      });
+      console.timeEnd('saveWatchHistory');
       
-      // Jika anime sudah ada di riwayat, update data
-      if (existingAnimeIndex !== -1) {
-        watchHistory.splice(existingAnimeIndex, 1);
-      }
-      
-      // Tambahkan anime ke awal array (paling baru)
-      watchHistory.unshift(animeData);
-      
-      // Batasi riwayat hanya 20 anime
-      if (watchHistory.length > 20) {
-        watchHistory = watchHistory.slice(0, 20);
-      }
-      
-      // Simpan kembali ke localStorage
-      localStorage.setItem('animeWatchHistory', JSON.stringify(watchHistory));
-      console.log('Anime saved to watch history:', animeData);
-    }
-    
-    // Simpan ke riwayat saat halaman dimuat
-    saveToWatchHistory();
-    
-    // Kelola tombol favorit
-    const favoriteButton = document.getElementById('favoriteButton');
-    if (favoriteButton) {
-      const favoriteIcon = favoriteButton.querySelector('svg');
-      const favoriteText = favoriteButton.querySelector('.favorite-text');
-      
-      // Periksa jika user sudah login
-      const user = getCurrentUser();
-      
-      if (!user) {
-        // Jika belum login, jadikan tombol sebagai link ke halaman login
-        favoriteButton.addEventListener('click', (e) => {
-          e.preventDefault();
-          window.location.href = '/akun';
-        });
-        favoriteText.textContent = 'Login untuk Favorit';
-        return;
-      }
-      
-      // Cek status favorit dari fungsi isFavorite
-      const isFav = isFavorite(animeId);
-      
-      // Set tampilan awal berdasarkan status
-      if (isFav) {
-        favoriteIcon.setAttribute('fill', 'currentColor');
-        favoriteButton.classList.remove('btn-outline');
-        favoriteButton.classList.add('btn-pink');
-        favoriteText.textContent = 'Favorit';
-      } else {
-        favoriteIcon.setAttribute('fill', 'none');
-        favoriteButton.classList.add('btn-outline');
-        favoriteButton.classList.remove('btn-pink');
-        favoriteText.textContent = 'Favorit';
-      }
-      
-      // Tambahkan event listener untuk toggle favorit
-      favoriteButton.addEventListener('click', () => {
-        // Toggle favorit menggunakan fungsi toggleFavorite
-        const isFav = toggleFavorite({
-          id: animeId,
-          slug: animeSlug,
-          title: animeTitle,
-          image: animeImage
-        });
+      // Kelola tombol favorit
+      console.time('initFavoriteButton');
+      const favoriteButton = document.getElementById('favoriteButton');
+      if (favoriteButton) {
+        const favoriteIcon = favoriteButton.querySelector('svg');
+        const favoriteText = favoriteButton.querySelector('.favorite-text');
         
-        // Update tampilan tombol
+        // Periksa jika user sudah login
+        const user = getCurrentUser();
+        
+        if (!user) {
+          // Jika belum login, jadikan tombol sebagai link ke halaman login
+          favoriteButton.addEventListener('click', (e) => {
+            e.preventDefault();
+            window.location.href = '/akun';
+          });
+          favoriteText.textContent = 'Login untuk Favorit';
+          return;
+        }
+        
+        // Cek status favorit dari fungsi isFavorite
+        const isFav = isFavorite(animeId);
+        
+        // Set tampilan awal berdasarkan status
         if (isFav) {
           favoriteIcon.setAttribute('fill', 'currentColor');
           favoriteButton.classList.remove('btn-outline');
@@ -364,9 +342,43 @@ const checkEpSelesai = episode ?? (isFinished ? episodes[0] : totalEp);
           favoriteText.textContent = 'Favorit';
         }
         
-        // Trigger storage event untuk pembaruan lintas tab
-        window.dispatchEvent(new Event('storage'));
-      });
+        // Tambahkan event listener untuk toggle favorit
+        favoriteButton.addEventListener('click', () => {
+          try {
+            // Toggle favorit menggunakan fungsi toggleFavorite
+            const isFav = toggleFavorite({
+              id: animeId,
+              slug: animeSlug,
+              title: animeTitle,
+              image: animeImage
+            });
+            
+            // Update tampilan tombol dengan animasi
+            if (isFav) {
+              favoriteIcon.setAttribute('fill', 'currentColor');
+              favoriteButton.classList.remove('btn-outline');
+              favoriteButton.classList.add('btn-pink');
+              favoriteText.textContent = 'Favorit';
+              
+              // Add a little bounce effect
+              favoriteButton.style.transform = 'scale(1.1)';
+              setTimeout(() => {
+                favoriteButton.style.transform = 'scale(1)';
+              }, 300);
+            } else {
+              favoriteIcon.setAttribute('fill', 'none');
+              favoriteButton.classList.add('btn-outline');
+              favoriteButton.classList.remove('btn-pink');
+              favoriteText.textContent = 'Favorit';
+            }
+          } catch (error) {
+            console.error("Error toggling favorite:", error);
+          }
+        });
+      }
+      console.timeEnd('initFavoriteButton');
+    } catch (error) {
+      console.error("Error initializing favorite and watch history:", error);
     }
   });
 </script>
@@ -390,20 +402,37 @@ const checkEpSelesai = episode ?? (isFinished ? episodes[0] : totalEp);
   
   /* Efek klik untuk tombol favorit */
   #favoriteButton {
-    transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+    transition: background-color 0.3s, border-color 0.3s, transform 0.1s;
   }
   
   #favoriteButton:active {
-    background-color: #f472b6 !important; /* Pink color when clicked */
-    border-color: #f472b6 !important;
-    color: white !important;
-    animation: pinkPulse 0.5s ease;
+    transform: scale(0.95);
   }
   
-  @keyframes pinkPulse {
-    0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(236, 72, 153, 0.7); }
-    50% { transform: scale(1.05); box-shadow: 0 0 0 15px rgba(236, 72, 153, 0); }
-    100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(236, 72, 153, 0); }
+  /* Pink effect when button is clicked or active */
+  #favoriteButton.btn-pink {
+    background-color: var(--primary);
+    border-color: var(--primary);
+    animation: pulse-pink 0.5s ease-in-out;
+    box-shadow: 0 0 8px rgba(255, 107, 107, 0.6);
+  }
+  
+  @keyframes pulse-pink {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+    100% { transform: scale(1); }
+  }
+  
+  #favoriteButton.btn-pink svg {
+    fill: white;
+    transform: scale(1.1);
+    transition: transform 0.3s ease;
+  }
+  
+  #favoriteButton.btn-pink:hover {
+    background-color: #ff5252;
+    border-color: #ff5252;
+    box-shadow: 0 0 12px rgba(255, 107, 107, 0.8);
   }
   
   /* Style for the heart icon */
@@ -421,28 +450,17 @@ const checkEpSelesai = episode ?? (isFinished ? episodes[0] : totalEp);
     filter: drop-shadow(0 0 3px rgba(255, 192, 203, 0.8));
   }
   
-  /* Custom button style untuk favorit */
-  .btn-pink {
-    background-color: #ec4899 !important; /* Pink-500 */
-    border-color: #ec4899 !important;
-    color: white !important;
-  }
-  
-  .btn-pink:hover {
-    background-color: #db2777 !important; /* Pink-600 */
-    border-color: #db2777 !important;
-    box-shadow: 0 0 8px rgba(236, 72, 153, 0.6);
-  }
-  
-  .btn-pink .heart-icon {
-    fill: white !important;
-    filter: drop-shadow(0 0 2px rgba(255, 255, 255, 0.5));
-  }
-  
   /* Membuat grid lebih responsive */
   @media (max-width: 640px) {
     .episode-btn {
       min-height: 3rem; /* Lebih tinggi untuk touchscreen */
+    }
+  }
+  
+  /* Mobile adjustments */
+  @media (max-width: 768px) {
+    #favoriteButton {
+      height: 38px;
     }
   }
 </style>

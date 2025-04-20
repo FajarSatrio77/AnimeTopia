@@ -1,27 +1,22 @@
 ---
 import Layout from "~/layouts/Layout.astro";
-import { getCurrentUser } from "~/utils/auth.js";
-
-// Cek jika user sudah login
-const user = getCurrentUser();
+// Tidak perlu pre-render user karena akan diatur di sisi klien
 ---
 
 <Layout title="Anime Favorit - AnimeTopia">
   <div class="container mx-auto px-4 py-6">
     <h1 class="text-2xl font-bold mb-6">Anime Favorit</h1>
     
-    {!user && (
-      <div class="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 mb-6 rounded">
-        <div class="flex items-center">
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-          </svg>
-          <span>Anda perlu <a href="/akun" class="text-blue-600 underline">login</a> untuk melihat dan mengelola anime favorit.</span>
-        </div>
+    <div id="auth-warning" class="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 mb-6 rounded">
+      <div class="flex items-center">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+        </svg>
+        <span>Anda perlu <a href="/akun" class="text-blue-600 underline">login</a> untuk melihat dan mengelola anime favorit.</span>
       </div>
-    )}
+    </div>
     
-    <div id="favorites-container" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+    <div id="favorites-container" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 hidden">
       <!-- Skeleton loader untuk anime favorit -->
       <div class="skeleton-loader">
         <div class="bg-base-300 rounded-lg animate-pulse overflow-hidden">
@@ -67,15 +62,9 @@ const user = getCurrentUser();
 
 <script>
   import { getUserFavorites, removeFromFavorites } from "../utils/favorites.js";
-  import { getCurrentUser } from "../utils/auth.js";
   
   // Flag untuk mencegah multiple redundant renders
   let isLoading = false;
-  
-  // Cache untuk data favorit
-  let favoritesCache = null;
-  let lastCacheTime = 0;
-  const CACHE_TTL = 30000; // 30 detik
   
   // Preload gambar di background untuk animasi yang lebih mulus
   function preloadImage(src) {
@@ -91,15 +80,62 @@ const user = getCurrentUser();
     });
   }
   
+  // Check if user is logged in
+  function isAuthenticated() {
+    try {
+      const userData = localStorage.getItem('animetopia_user');
+      if (!userData) return false;
+      
+      // Parse the data to ensure it's valid
+      const user = JSON.parse(userData);
+      return !!user && !!user.uid;
+    } catch (error) {
+      console.error('Error checking authentication status:', error);
+      return false;
+    }
+  }
+  
+  // Get current user from localStorage
+  function getCurrentUser() {
+    try {
+      const userData = localStorage.getItem('animetopia_user');
+      if (!userData) return null;
+      return JSON.parse(userData);
+    } catch (error) {
+      console.error('Error getting user data:', error);
+      return null;
+    }
+  }
+  
+  // Initialize page and load favorites
+  function initPage() {
+    const authWarning = document.getElementById('auth-warning');
+    
+    // Hide auth warning if logged in
+    if (isAuthenticated() && authWarning) {
+      authWarning.classList.add('hidden');
+    }
+    
+    // Load favorites
+    loadFavorites();
+  }
+  
+  // Load favorites when DOM is ready
   document.addEventListener('DOMContentLoaded', () => {
     // Load favorites immediately with minimal delay
-    requestAnimationFrame(() => {
-      loadFavorites();
-    });
+    requestAnimationFrame(initPage);
     
     // Tambahkan event listener untuk storage event
-    window.addEventListener('storage', debounce(loadFavorites, 300));
+    window.addEventListener('storage', debounce((e) => {
+      if (e.key === 'animetopia_user' || e.key?.startsWith('favorites_')) {
+        initPage();
+      }
+    }, 300));
   });
+  
+  // Also reload after Astro view transitions
+  document.addEventListener('astro:page-load', initPage);
+  document.addEventListener('astro:after-swap', initPage);
   
   // Fungsi debounce untuk mencegah pemanggilan function berulang kali dalam waktu singkat
   function debounce(func, wait) {
@@ -122,6 +158,7 @@ const user = getCurrentUser();
     const favoritesContainer = document.getElementById('favorites-container');
     const emptyFavorites = document.getElementById('empty-favorites');
     const loginRequired = document.getElementById('login-required');
+    const authWarning = document.getElementById('auth-warning');
     
     if (!favoritesContainer || !emptyFavorites || !loginRequired) {
       isLoading = false;
@@ -135,23 +172,17 @@ const user = getCurrentUser();
       favoritesContainer.classList.add('hidden');
       emptyFavorites.classList.add('hidden');
       loginRequired.classList.remove('hidden');
+      if (authWarning) authWarning.classList.remove('hidden');
       isLoading = false;
       return;
     }
     
+    // Hide auth warning because user is logged in
+    if (authWarning) authWarning.classList.add('hidden');
+    
     try {
-      // Gunakan cache jika masih valid
-      const now = Date.now();
-      let favorites;
-      
-      if (favoritesCache && (now - lastCacheTime < CACHE_TTL)) {
-        favorites = favoritesCache;
-      } else {
-        // Ambil data favorit dari fungsi getUserFavorites
-        favorites = getUserFavorites();
-        favoritesCache = favorites;
-        lastCacheTime = now;
-      }
+      // Ambil data favorit dari fungsi getUserFavorites optimized
+      const favorites = getUserFavorites();
       
       if (favorites.length === 0) {
         // Tampilkan pesan kosong
@@ -261,74 +292,45 @@ const user = getCurrentUser();
     if (card) {
       card.style.opacity = '0.5';
       card.style.transform = 'scale(0.95)';
+      card.style.transition = 'all 0.3s ease';
     }
     
-    // Hapus dari favorit menggunakan fungsi removeFromFavorites
+    // Remove from favorites
     removeFromFavorites(animeId);
     
-    // Reset cache
-    favoritesCache = null;
-    
-    // Hapus dari UI tanpa reload seluruh halaman
-    if (card) {
-      setTimeout(() => {
-        card.remove();
-        
-        // Cek jika tidak ada lagi card favorit
-        const favoritesContainer = document.getElementById('favorites-container');
-        const emptyFavorites = document.getElementById('empty-favorites');
-        
-        if (favoritesContainer && favoritesContainer.children.length === 0) {
-          favoritesContainer.classList.add('hidden');
-          if (emptyFavorites) emptyFavorites.classList.remove('hidden');
-        }
-        
-        // Update favorites count di semua halaman
-        const countElements = document.querySelectorAll('#favorites-count');
-        countElements.forEach((element) => {
-          if (element instanceof HTMLElement) {
-            const favorites = getUserFavorites();
-            element.textContent = String(favorites.length);
-          }
-        });
-        
-        // Trigger storage event untuk update lintas tab
-        window.dispatchEvent(new Event('storage'));
-      }, 300); // Waktu untuk animasi
-    }
+    // Reload favorites after a short delay
+    setTimeout(() => {
+      loadFavorites();
+    }, 300);
   }
 </script>
 
 <style>
+  .btn-pink {
+    background-color: #f54ea2;
+    border-color: #f54ea2;
+    color: white;
+  }
+  
+  .btn-pink:hover {
+    background-color: #e5418f;
+    border-color: #e5418f;
+  }
+  
+  /* Animations for favorited items */
   .anime-card {
-    transition: transform 0.2s ease, opacity 0.3s ease;
-    will-change: transform, opacity;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
   }
   
   .anime-card:hover {
-    transform: translateY(-5px);
+    transform: translateY(-4px);
   }
   
-  .remove-favorite {
-    opacity: 0.9;
-    transition: opacity 0.2s ease, transform 0.2s ease;
-  }
-  
-  .remove-favorite:hover {
-    opacity: 1;
-    transform: scale(1.1);
-  }
-  
-  .skeleton-loader {
-    animation: pulse 1.5s infinite;
-  }
-  
-  @keyframes pulse {
-    0%, 100% {
-      opacity: 1;
-    }
-    50% {
-      opacity: 0.7;
+  /* Improved responsive design */
+  @media (max-width: 640px) {
+    #favorites-container {
+      grid-template-columns: repeat(2, 1fr);
+      gap: 0.75rem;
     }
   }
 </style> 

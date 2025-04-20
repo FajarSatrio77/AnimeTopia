@@ -1,3 +1,7 @@
+---
+import UserMenu from './UserMenu.astro';
+---
+
 <div
   class="sticky top-0 left-0 right-0 navbar bg-base-100/90 backdrop-blur shadow-sm z-10 rounded-b-lg"
 >
@@ -13,35 +17,39 @@
       </label>
       <ul
         tabindex="0"
-        class="menu menu-sm dropdown-content bg-base-100 rounded-box z-1 mt-3 w-52 p-2 shadow animate-fadeIn"
+        class="menu menu-sm dropdown-content bg-base-100 rounded-box z-[20] mt-3 w-52 p-2 shadow animate-fadeIn mobile-menu"
+        id="mobile-menu"
       >
         <li><a href="/">Ongoing</a></li>
         <li><a href="/completed">Completed</a></li>
-        <li><a href="/history">Riwayat Tontonan</a></li>
-        <li><a href="/favorites">Favorit <span id="mobile-favorites-count" class="badge badge-sm badge-primary ml-1 hidden">0</span></a></li>
-        <li id="mobile-profile-menu"><a href="/akun" class={Astro.url.pathname === "/akun" ? "active" : ""}>Profile</a></li>
+        <li class="divider divider-horizontal my-1"></li>
+        <li class="guest-only"><a href="/akun">Login / Daftar</a></li>
+        <li class="user-only"><a href="/favorites">Favorit <span id="mobile-favorites-count" class="badge badge-sm badge-primary ml-1 hidden">0</span></a></li>
+        <li class="user-only"><a href="/history">Riwayat Tontonan</a></li>
+        <li class="user-only"><a href="/akun">Profile</a></li>
       </ul>
     </div>
     
-    <!-- Desktop Navigation -->
+    <!-- Desktop Navigation on left -->
     <div class="hidden lg:flex">
       <ul class="menu menu-horizontal px-1 desktop-nav">
         <li><a href="/" class={Astro.url.pathname === "/" ? "active" : ""}>Ongoing</a></li>
         <li><a href="/completed" class={Astro.url.pathname === "/completed" ? "active" : ""}>Completed</a></li>
-        <li><a href="/history" class={Astro.url.pathname === "/history" ? "active" : ""}>Riwayat Tontonan</a></li>
-        <li><a href="/favorites" class={Astro.url.pathname === "/favorites" ? "active" : ""}>Favorit <span id="favorites-count" class="badge badge-sm badge-primary ml-1 hidden">0</span></a></li>
-        <li id="desktop-profile-menu"><a href="/akun" class={Astro.url.pathname === "/akun" ? "active" : ""}>Profile</a></li>
       </ul>
     </div>
+    
+    <!-- Centered Logo for Mobile -->
+    <a href="/" class="lg:hidden mx-auto btn btn-ghost text-xl">AnimeTopia</a>
   </div>
   
-  <!-- Centered Logo -->
-  <div class="navbar-center">
+  <!-- Desktop Logo in center -->
+  <div class="navbar-center hidden lg:flex">
     <a href="/" class="btn btn-ghost text-xl">AnimeTopia</a>
   </div>
   
   <div class="navbar-end">
-    <div class="dropdown dropdown-end">
+    <!-- Search Button -->
+    <div class="dropdown dropdown-end mr-2">
       <button tabindex="0" class="btn btn-ghost btn-circle">
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -65,6 +73,11 @@
           </div>
         </form>
       </div>
+    </div>
+    
+    <!-- User Menu (Desktop) -->
+    <div class="hidden lg:block">
+      <UserMenu />
     </div>
   </div>
 </div>
@@ -177,14 +190,97 @@
       box-shadow: 0 0 8px rgba(124, 77, 255, 0.7);
     }
   }
+  
+  /* Centering for mobile */
+  @media (max-width: 1023px) {
+    .navbar-start {
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+    }
+    
+    .navbar-center, .navbar-end {
+      display: none;
+    }
+  }
+  
+  /* User authentication state styling for mobile */
+  .mobile-menu .user-only {
+    display: none;
+  }
+  
+  .mobile-menu .guest-only {
+    display: block;
+  }
+  
+  /* Show appropriate menu items based on login status */
+  .mobile-menu.logged-in .user-only {
+    display: block;
+  }
+  
+  .mobile-menu.logged-in .guest-only {
+    display: none;
+  }
 </style>
 
 <script>
+  // Check if the user is logged in
+  function isLoggedIn() {
+    try {
+      const userData = localStorage.getItem('animetopia_user');
+      return !!userData; // Convert to boolean - true if userData exists, false otherwise
+    } catch (error) {
+      console.error('Error checking login status:', error);
+      return false;
+    }
+  }
+
+  // Get the current user from localStorage
+  function getLocalUser() {
+    try {
+      const userData = localStorage.getItem('animetopia_user');
+      if (!userData) return null;
+      return JSON.parse(userData);
+    } catch (error) {
+      console.error('Error getting user data:', error);
+      return null;
+    }
+  }
+
+  // Update all navigation menus based on login status
+  function updateAllMenus() {
+    // Check if user is logged in
+    const isUserLoggedIn = isLoggedIn();
+    
+    // Update mobile menu
+    const mobileMenu = document.getElementById('mobile-menu');
+    if (mobileMenu) {
+      if (isUserLoggedIn) {
+        mobileMenu.classList.add('logged-in');
+        updateMobileFavoritesCount();
+      } else {
+        mobileMenu.classList.remove('logged-in');
+      }
+    }
+    
+    // Update desktop menu (UserMenu component)
+    const desktopUserMenu = document.querySelector('.user-menu');
+    if (desktopUserMenu) {
+      if (isUserLoggedIn) {
+        desktopUserMenu.setAttribute('data-logged-in', 'true');
+      } else {
+        desktopUserMenu.setAttribute('data-logged-in', 'false');
+      }
+    }
+  }
+
   // Update active state on navigation
   document.addEventListener('DOMContentLoaded', () => {
-    const currentPath = window.location.pathname;
+    // Update all menus immediately
+    updateAllMenus();
     
-    // Add active class to current page link
+    // Update active menu item
+    const currentPath = window.location.pathname;
     const navLinks = document.querySelectorAll('.desktop-nav a');
     navLinks.forEach(link => {
       const href = link.getAttribute('href') || '';
@@ -193,87 +289,79 @@
       }
     });
     
-    // Update favorites count
-    updateFavoritesCount();
-    
-    // Listen for storage events to update favorites count
-    window.addEventListener('storage', updateFavoritesCount);
-    
-    // Handle profile menu visibility
-    updateProfileMenuVisibility();
-    
-    // Listen for login/logout events
-    window.addEventListener('storage', updateProfileMenuVisibility);
-  });
-  
-  // Fungsi untuk memperbarui jumlah favorit
-  function updateFavoritesCount() {
-    const countElements = document.querySelectorAll('#favorites-count, #mobile-favorites-count');
-    const userData = localStorage.getItem('animetopia_user');
-    
-    if (userData) {
-      try {
-        // Pastikan data user valid
-        const user = JSON.parse(userData);
-        if (user && user.uid) {
-          // Cek favorites untuk user ini
-          const key = `favorites_${user.uid}`;
-          const favoritesData = localStorage.getItem(key);
-          const favorites = favoritesData ? JSON.parse(favoritesData) : [];
-          
-          countElements.forEach(el => {
-            if (el instanceof HTMLElement) {
-              if (favorites.length > 0) {
-                el.textContent = String(favorites.length);
-                el.classList.remove('hidden');
-              } else {
-                el.classList.add('hidden');
-              }
-            }
-          });
-          return;
-        }
-      } catch (e) {
-        console.error("Error parsing user data for favorites:", e);
-      }
-    }
-    
-    // Jika tidak login atau error, sembunyikan badge
-    countElements.forEach(el => {
-      if (el instanceof HTMLElement) {
-        el.classList.add('hidden');
+    // Add storage event listener
+    window.addEventListener('storage', (e) => {
+      if (e.key === 'animetopia_user' || e.key?.startsWith('favorites_')) {
+        updateAllMenus();
       }
     });
+    
+    // Handle logout link click events with proper type handling
+    document.addEventListener('click', (event) => {
+      const target = event.target;
+      if (target instanceof HTMLElement) {
+        const logoutLink = target.closest('.logout-link');
+        if (logoutLink) {
+          event.preventDefault();
+          logoutUser();
+        }
+      }
+    });
+    
+    // Check login status periodically to ensure UI is up to date
+    setInterval(updateAllMenus, 2000);
+  });
+  
+  // Function to check login status and update UI
+  function checkLoginStatus() {
+    // Get login status directly from localStorage
+    const loggedIn = isLoggedIn();
+    updateAllMenus();
   }
   
-  // Fungsi untuk memperbarui visibilitas menu profil
-  function updateProfileMenuVisibility() {
-    const mobileProfileMenu = document.getElementById('mobile-profile-menu');
-    const desktopProfileMenu = document.getElementById('desktop-profile-menu');
+  // Function to update mobile favorites count
+  function updateMobileFavoritesCount() {
+    const favCountElement = document.getElementById('mobile-favorites-count');
+    if (!favCountElement) return;
     
-    // Menggunakan localStorage langsung untuk pengecekan login status
-    const userData = localStorage.getItem('animetopia_user');
-    
-    // Pastikan menu profil selalu terlihat
-    if (mobileProfileMenu) mobileProfileMenu.classList.remove('hidden');
-    if (desktopProfileMenu) desktopProfileMenu.classList.remove('hidden');
-    
-    // Jika ada user data yang valid, bisa ditambahkan kelas atau atribut khusus
-    if (userData) {
-      try {
-        const user = JSON.parse(userData);
-        if (user && user.uid) {
-          // Tambahkan indikator user login jika diperlukan
-          if (mobileProfileMenu) mobileProfileMenu.setAttribute('data-logged-in', 'true');
-          if (desktopProfileMenu) desktopProfileMenu.setAttribute('data-logged-in', 'true');
-        }
-      } catch (e) {
-        console.error("Error parsing user data:", e);
+    try {
+      const user = getLocalUser();
+      if (!user || !user.uid) return;
+      
+      const key = `favorites_${user.uid}`;
+      const favoritesData = localStorage.getItem(key);
+      const favorites = favoritesData ? JSON.parse(favoritesData) : [];
+      
+      if (favorites.length > 0) {
+        favCountElement.textContent = String(favorites.length);
+        favCountElement.classList.remove('hidden');
+      } else {
+        favCountElement.classList.add('hidden');
       }
-    } else {
-      // Hapus indikator login jika ada
-      if (mobileProfileMenu) mobileProfileMenu.removeAttribute('data-logged-in');
-      if (desktopProfileMenu) desktopProfileMenu.removeAttribute('data-logged-in');
+    } catch (error) {
+      console.error('Error updating mobile favorites count:', error);
+      favCountElement.classList.add('hidden');
     }
   }
+  
+  // Function to logout user
+  function logoutUser() {
+    try {
+      localStorage.removeItem('animetopia_user');
+      localStorage.removeItem('favorites');
+      localStorage.removeItem('animeWatchHistory');
+      
+      // Force update UI before redirecting
+      updateAllMenus();
+      
+      // Redirect to login page
+      window.location.href = '/akun';
+    } catch (error) {
+      console.error('Error during logout:', error);
+    }
+  }
+  
+  // Also run on Astro view transitions
+  document.addEventListener('astro:page-load', updateAllMenus);
+  document.addEventListener('astro:after-swap', updateAllMenus);
 </script>

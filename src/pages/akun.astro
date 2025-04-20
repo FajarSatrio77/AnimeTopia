@@ -18,6 +18,9 @@ import Layout from "~/layouts/Layout.astro";
     </div>
   </div>
 
+  <!-- Toast notifications container -->
+  <div id="toast-container" class="toast toast-top toast-end z-50"></div>
+
   <div class="anime-login-container min-h-screen py-12 px-4 relative">
     
     <!-- Main container -->
@@ -44,11 +47,10 @@ import Layout from "~/layouts/Layout.astro";
               <div class="user-info text-center mb-8">
                 <h3 id="profile-display-name" class="text-xl font-semibold text-white mb-1">Username</h3>
                 <p id="profile-email" class="text-sm text-indigo-200/70">user@example.com</p>
-            </div>
-            
-                <div class="stat bg-indigo-800/30 p-3 rounded-lg text-center">
+                
+                <div class="stat bg-indigo-800/30 p-3 rounded-lg text-center mt-4">
                   <p class="text-xs text-indigo-200/70">Ditandai</p>
-                  <p class="text-xl font-bold text-white">0</p>
+                  <p id="favorites-count" class="text-xl font-bold text-white">0</p>
                 </div>
               </div>
               
@@ -85,24 +87,26 @@ import Layout from "~/layouts/Layout.astro";
                     <input type="password" id="password" name="password" 
                       class="form-control" placeholder="Password" required>
                     <i class="input-icon uil uil-lock-alt"></i>
-            </div>
-            
-            <div class="text-right">
+                  </div>
+                  
+                  <div class="text-right">
                     <a href="#" class="text-xs text-pink-300 hover:text-white transition-colors">Forgot Password?</a>
-            </div>
-            
+                  </div>
+                  
                   <div class="hidden bg-red-900/50 text-red-200 text-sm p-3 rounded-lg border border-red-500/50 mt-4" id="login-error">
                     <div class="flex items-center">
-                <svg class="h-5 w-5 mr-2 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                  <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
-                </svg>
-                <span>Username atau password salah</span>
-              </div>
-            </div>
-            
+                      <svg class="h-5 w-5 mr-2 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+                      </svg>
+                      <span>Username atau password salah</span>
+                    </div>
+                  </div>
+                  
                   <button type="submit" id="login-button" class="btn-login">
-                LOGIN
-              </button>
+                    LOGIN
+                  </button>
+                  
+                  <input type="hidden" id="redirect-url" name="redirect">
                   
                   <div class="social-login">
                     <p class="text-center text-xs text-white/50 mb-3">Or sign in with</p>
@@ -124,62 +128,62 @@ import Layout from "~/layouts/Layout.astro";
                     <a href="#" id="show-register" class="text-pink-400 hover:text-pink-300">Sign up now</a>
                   </p>
                 </form>
+              </div>
+            </div>
           </div>
-        </div>
-      </div>
-      
-      <!-- Register Card -->
+          
+          <!-- Register Card -->
           <div id="register-card" class="card-3d-wrapper hidden">
             <div class="card-front">
               <div class="center-wrap">
                 <div class="card-header text-center mb-4">
                   <h2 class="text-2xl font-bold mb-1 text-white">Join AnimeTopia</h2>
                   <p class="text-sm text-indigo-200/70">Create your account</p>
-        </div>
-        
+                </div>
+                
                 <form id="register-form" class="space-y-5">
                   <div class="form-group">
                     <input type="text" id="reg-username" name="username" 
                       class="form-control" placeholder="Username" required>
                     <i class="input-icon uil uil-user"></i>
-            </div>
-            
+                  </div>
+                  
                   <div class="form-group">
                     <input type="email" id="reg-email" name="email" 
                       class="form-control" placeholder="Email" required>
                     <i class="input-icon uil uil-at"></i>
-            </div>
-            
+                  </div>
+                  
                   <div class="form-group">
                     <input type="password" id="reg-password" name="password" 
                       class="form-control" placeholder="Password" required>
                     <i class="input-icon uil uil-lock-alt"></i>
-            </div>
-            
+                  </div>
+                  
                   <div class="form-group">
                     <input type="password" id="reg-confirm-password" name="confirm_password" 
                       class="form-control" placeholder="Confirm Password" required>
                     <i class="input-icon uil uil-lock-access"></i>
-            </div>
-            
+                  </div>
+                  
                   <div class="hidden bg-red-900/50 text-red-200 text-sm p-3 rounded-lg border border-red-500/50 mt-4" id="register-error">
                     <div class="flex items-center">
-                <svg class="h-5 w-5 mr-2 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                  <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
-                </svg>
-                <span>Username atau email sudah digunakan</span>
-              </div>
-            </div>
-            
+                      <svg class="h-5 w-5 mr-2 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+                      </svg>
+                      <span>Username atau email sudah digunakan</span>
+                    </div>
+                  </div>
+                  
                   <div class="flex items-center space-x-2 ml-1">
                     <input id="remember-me" name="remember-me" type="checkbox" 
                       class="w-4 h-4 text-indigo-500 bg-transparent border-2 border-white/30 rounded focus:ring-0">
                     <label for="remember-me" class="text-sm text-white/70">Remember me</label>
-            </div>
-            
+                  </div>
+                  
                   <button type="submit" id="register-button" class="btn-register">
                     SIGN UP
-              </button>
+                  </button>
                   
                   <p class="text-center mt-6 text-white/70 text-sm">
                     Already a member? 
@@ -195,732 +199,100 @@ import Layout from "~/layouts/Layout.astro";
   </div>
 </Layout>
 
-<script is:inline>
-  // Script untuk menangani toggle antara form
-  document.addEventListener('DOMContentLoaded', () => {
-    console.log("DOM Animation Script Loaded");
-    
-    // DOM elements
-    const loginCard = document.getElementById('login-card');
-    const registerCard = document.getElementById('register-card');
-    const showRegisterBtn = document.getElementById('show-register');
-    const showLoginBtn = document.getElementById('show-login');
-    const directRegisterBtn = document.getElementById('direct-register-btn');
-    
-    console.log("Elements found:", { 
-      loginCard: !!loginCard, 
-      registerCard: !!registerCard, 
-      showRegisterBtn: !!showRegisterBtn, 
-      showLoginBtn: !!showLoginBtn,
-      directRegisterBtn: !!directRegisterBtn
-    });
-    
-    // Function to switch to register form
-    function showRegisterForm() {
-      if (!loginCard || !registerCard) {
-        console.error("Cards not found for switching to register");
-        return;
-      }
-      
-      console.log("Switching to register form");
-      
-      // Hide login card and profile card if it exists
-      loginCard.classList.add('hidden');
-      const profileCard = document.getElementById('profile-card');
-      if (profileCard) {
-        profileCard.classList.add('hidden');
-      }
-      
-      // Show register card
-      registerCard.classList.remove('hidden');
-    }
-    
-    // Function to switch to login form
-    function showLoginForm() {
-      if (!loginCard || !registerCard) {
-        console.error("Cards not found for switching to login");
-        return;
-      }
-      
-      console.log("Switching to login form from inline script");
-      
-      // Hide register card
-      registerCard.classList.add('hidden');
-      
-      // Show login card
-      loginCard.classList.remove('hidden');
-    }
-    
-    // Register button click handler
-    if (showRegisterBtn) {
-      showRegisterBtn.addEventListener('click', function(e) {
-        e.preventDefault();
-        console.log("Register button clicked");
-        console.log("Register card before:", registerCard ? registerCard.className : "null");
-        console.log("Login card before:", loginCard ? loginCard.className : "null");
-        
-        showRegisterForm();
-        
-        console.log("Register card after:", registerCard ? registerCard.className : "null");
-        console.log("Login card after:", loginCard ? loginCard.className : "null");
-      });
-    } else {
-      console.error("Show register button not found");
-    }
-    
-    // Login button click handler
-    if (showLoginBtn) {
-      showLoginBtn.addEventListener('click', function(e) {
-        e.preventDefault();
-        console.log("Login button clicked");
-        showLoginForm();
-      });
-    } else {
-      console.error("Show login button not found");
-    }
-    
-    // Direct register button handler (in navbar)
-    if (directRegisterBtn) {
-      directRegisterBtn.addEventListener('click', function(e) {
-        e.preventDefault();
-        console.log("Direct register button clicked");
-        console.log("Register card before:", registerCard ? registerCard.className : "null");
-        console.log("Login card before:", loginCard ? loginCard.className : "null");
-        
-        showRegisterForm();
-        
-        console.log("Register card after:", registerCard ? registerCard.className : "null");
-        console.log("Login card after:", loginCard ? loginCard.className : "null");
-      });
-    }
-    
-    // Expose these functions globally so they can be used by other scripts
-    window.showRegisterForm = showRegisterForm;
-    window.showLoginForm = showLoginForm;
-  });
-</script>
+<!-- Include account page script -->
+<script type="module" src="/src/scripts/account-page.js"></script>
 
-<script>
-  // Import auth functions
-  import { signUpUser, loginUser, getCurrentUser, checkApiConnection, setupAuthStateListener, logoutUser } from "../utils/auth.js";
-  
-  document.addEventListener('DOMContentLoaded', async () => {
-    console.log("Auth Script Loaded");
-    
-    // Check if API is reachable
-    const apiConnected = await checkApiConnection();
-    if (!apiConnected) {
-      console.error("API tidak dapat dijangkau. Mungkin server tidak berjalan atau ada masalah routing.");
-      // Tampilkan pesan di halaman
-      const apiErrorMsg = document.createElement('div');
-      apiErrorMsg.className = 'bg-red-500 text-white p-3 text-center fixed top-0 left-0 right-0 z-50';
-      apiErrorMsg.innerHTML = 'Koneksi ke server API gagal. Pastikan XAMPP berjalan dan server Astro aktif.';
-      document.body.prepend(apiErrorMsg);
-    }
-    
-    // DOM elements for forms
-    const loginForm = document.getElementById('login-form');
-    const registerForm = document.getElementById('register-form');
-    const loginError = document.getElementById('login-error');
-    const registerError = document.getElementById('register-error');
-    const profileCard = document.getElementById('profile-card');
-    const loginCard = document.getElementById('login-card');
-    const registerCard = document.getElementById('register-card');
-    
-    // Function to update profile UI with user data
-    async function updateProfileUI(userData) {
-      if (!userData || !profileCard) return;
-      
-      console.log("Updating profile UI with data:", userData);
-      
-      const profileInitial = document.getElementById('profile-initial');
-      const profileDisplayName = document.getElementById('profile-display-name');
-      const profileEmail = document.getElementById('profile-email');
-      const favoritesCount = document.getElementById('favorites-count');
-      
-      if (profileInitial) {
-        profileInitial.textContent = userData.nama ? userData.nama.charAt(0).toUpperCase() : 'U';
-      }
-      
-      if (profileDisplayName) {
-        profileDisplayName.textContent = userData.nama || 'User';
-      }
-      
-      if (profileEmail) {
-        profileEmail.textContent = userData.email || '';
-      }
-
-      // Update favorites count
-      if (favoritesCount) {
-        const favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
-        favoritesCount.textContent = favorites.length;
-      }
-    }
-    
-    // Function to show profile
-    async function showProfileCard() {
-      if (!profileCard || !loginCard || !registerCard) return;
-      
-      // Get user data from localStorage first
-      const storedUser = localStorage.getItem('animetopia_user');
-      if (storedUser) {
-        const userData = JSON.parse(storedUser);
-        console.log("Found stored user data:", userData);
-      
-      // Hide other cards
-      loginCard.classList.add('hidden');
-      registerCard.classList.add('hidden');
-      
-      // Show profile card
-      profileCard.classList.remove('hidden');
-      
-        // Update profile UI
-        await updateProfileUI(userData);
-        return;
-      }
-      
-      // If no stored user data, show login form
-      showLoginForm();
-    }
-
-    // Function to show login form
-    function showLoginForm() {
-      if (!loginCard || !registerCard || !profileCard) return;
-      
-      // Hide other cards
-      registerCard.classList.add('hidden');
-      profileCard.classList.add('hidden');
-      
-      // Show login card
-      loginCard.classList.remove('hidden');
-    }
-    
-    // Check if user is already logged in
-    const storedUser = localStorage.getItem('animetopia_user');
-    console.log("Checking stored user:", storedUser);
-    
-    if (storedUser) {
-      // User is logged in, show profile
-      await showProfileCard();
-      } else {
-      // No logged in user, show login form
-          showLoginForm();
-        }
-
-    // Handle logout button click
-    const logoutButton = document.getElementById('logout-button');
-    if (logoutButton) {
-      logoutButton.addEventListener('click', async () => {
-        await logoutUser();
-      });
-    }
-    
-    // Handle login form submission
-    if (loginForm) {
-      loginForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        
-        const emailElement = document.getElementById('email') as HTMLInputElement;
-        const passwordElement = document.getElementById('password') as HTMLInputElement;
-        const loginButton = document.getElementById('login-button') as HTMLButtonElement;
-        
-        if (!emailElement || !passwordElement) {
-          console.error("Email or password element not found");
-          return;
-        }
-        
-        const email = emailElement.value.trim();
-        const password = passwordElement.value.trim();
-        
-        if (!email || !password) {
-          if (loginError) {
-            const spanElement = loginError.querySelector('span');
-            if (spanElement) {
-              spanElement.textContent = 'Email dan password harus diisi';
-            }
-            loginError.classList.remove('hidden');
-          }
-          return;
-        }
-        
-        try {
-          // Disable login button and show loading state
-          if (loginButton) {
-            loginButton.disabled = true;
-            loginButton.textContent = 'Loading...';
-          }
-          
-          // Hapus data user lama dari localStorage sebelum login
-          localStorage.removeItem('animetopia_user');
-          
-          console.log("Attempting login for:", email);
-          const loginResult = await loginUser(email, password);
-          
-          if (loginResult.success) {
-            console.log("Login successful:", loginResult.user);
-            
-            // Simpan data user ke localStorage
-            localStorage.setItem('animetopia_user', JSON.stringify(loginResult.user));
-            
-            // Trigger storage event untuk memperbarui UI
-            window.dispatchEvent(new Event('storage'));
-            
-            // Show success message briefly
-            alert('Login berhasil! Redirecting...');
-            
-            // Redirect ke halaman ongoing dengan refresh penuh
-            window.location.href = '/ongoing';
-            
-            // Force full page reload to ensure all UI components update
-            setTimeout(() => {
-              window.location.reload();
-            }, 100);
-          } else {
-            console.log("Login failed:", loginResult.message);
-            if (loginError) {
-            const spanElement = loginError.querySelector('span');
-            if (spanElement) {
-                spanElement.textContent = loginResult.message || 'Email atau password salah';
-            }
-            loginError.classList.remove('hidden');
-            }
-          }
-        } catch (error) {
-          console.error("Login error:", error);
-          if (loginError) {
-            const spanElement = loginError.querySelector('span');
-            if (spanElement) {
-              spanElement.textContent = 'Terjadi kesalahan saat login. Silakan coba lagi.';
-            }
-          loginError.classList.remove('hidden');
-          }
-        } finally {
-          // Re-enable login button
-          if (loginButton) {
-            loginButton.disabled = false;
-            loginButton.textContent = 'LOGIN';
-          }
-        }
-      });
-    }
-    
-    // Setup auth state listener
-    const unsubscribe = setupAuthStateListener((user) => {
-      if (user) {
-        // Tampilkan profile jika di halaman login
-        if (window.location.pathname === '/akun') {
-          showProfileCard();
-        }
-      } else {
-        // User telah logout, tampilkan form login
-        if (window.location.pathname === '/akun') {
-          showLoginForm();
-        }
-      }
-    });
-    
-    // Handle register form submission
-    if (registerForm) {
-      registerForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        
-        console.log("Form submission started...");
-        
-        const usernameElement = document.getElementById('reg-username') as HTMLInputElement;
-        const emailElement = document.getElementById('reg-email') as HTMLInputElement;
-        const passwordElement = document.getElementById('reg-password') as HTMLInputElement;
-        const confirmPasswordElement = document.getElementById('reg-confirm-password') as HTMLInputElement;
-        
-        if (!usernameElement || !emailElement || !passwordElement || !confirmPasswordElement || !registerError) {
-          console.error("One or more registration form elements not found");
-          return;
-        }
-        
-        const username = usernameElement.value || "";
-        const email = emailElement.value || "";
-        const password = passwordElement.value || "";
-        const confirmPassword = confirmPasswordElement.value || "";
-        
-        console.log("Form data collected:", { 
-          username: username, 
-          email: email,
-          hasPassword: !!password, 
-          passwordsMatch: password === confirmPassword 
-        });
-        
-        // Basic validation
-        if (!username || !email || !password || !confirmPassword) {
-          const spanElement = registerError.querySelector('span');
-          if (spanElement) {
-            spanElement.textContent = 'Semua field harus diisi';
-          }
-          registerError.classList.remove('hidden');
-          console.log("Validation failed: Empty fields");
-          return;
-        }
-        
-        // Email validation
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (!emailRegex.test(email)) {
-          const spanElement = registerError.querySelector('span');
-          if (spanElement) {
-            spanElement.textContent = 'Format email tidak valid';
-          }
-          registerError.classList.remove('hidden');
-          console.log("Validation failed: Invalid email format");
-          return;
-        }
-        
-        // Check if passwords match
-        if (password !== confirmPassword) {
-          const spanElement = registerError.querySelector('span');
-          if (spanElement) {
-            spanElement.textContent = 'Password tidak cocok';
-          }
-          registerError.classList.remove('hidden');
-          console.log("Validation failed: Passwords don't match");
-          return;
-        }
-        
-        try {
-          console.log("Attempting registration for:", username, email);
-          registerError.classList.add('hidden'); // Hide any previous error
-          
-          // Tambahkan loading state
-          const registerButton = document.getElementById('register-button');
-          if (registerButton) {
-            registerButton.textContent = "Mendaftar...";
-            registerButton.setAttribute('disabled', 'true');
-          }
-          
-          // Gunakan signUpUser untuk Firebase
-          const user = await signUpUser(email, password, username);
-          
-          console.log("Registration successful:", user);
-          
-          // Kembalikan tombol ke keadaan semula
-          if (registerButton) {
-            registerButton.textContent = "SIGN UP";
-            registerButton.removeAttribute('disabled');
-          }
-          
-          // Hapus data user lama jika ada untuk mencegah login otomatis
-          localStorage.removeItem('animetopia_user');
-            
-          // Show success message
-          alert('Pendaftaran berhasil! Silakan login.');
-            
-          // Pre-fill login form with the registered email for convenience
-          const emailInput = document.getElementById('email') as HTMLInputElement;
-          if (emailInput) {
-            emailInput.value = email;
-          }
-            
-          // Switch to login view
-            showLoginForm();
-          
-        } catch (error) {
-          console.error("Registration error:", error);
-          
-          // Kembalikan tombol ke keadaan semula
-          const registerButton = document.getElementById('register-button');
-          if (registerButton) {
-            registerButton.textContent = "SIGN UP";
-            registerButton.removeAttribute('disabled');
-          }
-          
-          if (registerError) {
-          const spanElement = registerError.querySelector('span');
-          if (spanElement) {
-              spanElement.textContent = error.message || 'Terjadi kesalahan saat pendaftaran. Silakan coba lagi.';
-            }
-            registerError.classList.remove('hidden');
-          }
-        }
-      });
-    }
-    
-    // Add event listener for profile menu click
-    document.addEventListener('click', async (e) => {
-      const target = e.target as HTMLElement;
-      const profileLink = target.closest('a[href="/akun"]');
-      
-      if (profileLink) {
-        e.preventDefault();
-        const storedUser = localStorage.getItem('animetopia_user');
-        
-        if (storedUser) {
-          // User is logged in, show profile
-          await showProfileCard();
-        } else {
-          // No logged in user, show login form
-          showLoginForm();
-        }
-        
-        // Navigate to profile page
-        window.location.href = '/akun';
-      }
-    });
-    
-    // Add event listener for page load
-    window.addEventListener('load', async () => {
-      const storedUser = localStorage.getItem('animetopia_user');
-      if (storedUser && window.location.pathname === '/akun') {
-        await showProfileCard();
-      }
-    });
-    
-    // Add event listener for storage changes to update favorites count
-    window.addEventListener('storage', () => {
-      const favoritesCount = document.getElementById('favorites-count');
-      if (favoritesCount) {
-        const favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
-        favoritesCount.textContent = favorites.length;
-      }
-    });
-
-    // Update favorites count when profile card is shown
-    if (profileCard) {
-      const observer = new MutationObserver((mutations) => {
-        mutations.forEach((mutation) => {
-          if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
-            if (!profileCard.classList.contains('hidden')) {
-              const favoritesCount = document.getElementById('favorites-count');
-              if (favoritesCount) {
-                const favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
-                favoritesCount.textContent = favorites.length;
-              }
-            }
-          }
-        });
-      });
-
-      observer.observe(profileCard, { attributes: true });
-    }
-    
-    // Bersihkan listener saat unmount
-    return () => {
-      if (unsubscribe) unsubscribe();
-    };
-  });
-</script>
-
-<style>
-  /* Anime-inspired login container */
+<style is:global>
   .anime-login-container {
-    background: linear-gradient(to right, #000428, #004e92);
-    position: relative;
+    background-color: hsl(var(--b1));
+    background-image: linear-gradient(45deg, rgba(76, 0, 112, 0.3), rgba(19, 18, 49, 0.4)), 
+                      url('/background.svg');
+    background-size: cover;
+    background-position: center;
     overflow: hidden;
   }
   
-  /* Sakura petals animation */
-  .anime-decoration-elements {
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    top: 0;
-    left: 0;
-    overflow: hidden;
-    pointer-events: none;
-  }
-  
-  .sakura-petal {
-    position: absolute;
-    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23ffc0cb"><path d="M12,1C7.58,1,4,4.58,4,9c0,7,3,14,8,14c5,0,8-7,8-14C20,4.58,16.42,1,12,1z"/></svg>');
-    background-size: contain;
-    opacity: 0.6;
-    transform-origin: center;
-    animation: sakuraFall linear infinite;
-  }
-  
-  .petal-1 { 
-    width: 15px; height: 15px; left: 10%; top: -10%; 
-    animation-duration: 12s; animation-delay: 0s; 
-  }
-  .petal-2 { 
-    width: 20px; height: 20px; left: 20%; top: -15%; 
-    animation-duration: 16s; animation-delay: 2s; 
-  }
-  .petal-3 { 
-    width: 18px; height: 18px; left: 30%; top: -5%; 
-    animation-duration: 13s; animation-delay: 1s; 
-  }
-  .petal-4 { 
-    width: 22px; height: 22px; left: 50%; top: -20%; 
-    animation-duration: 15s; animation-delay: 0.5s; 
-  }
-  .petal-5 { 
-    width: 16px; height: 16px; left: 65%; top: -10%; 
-    animation-duration: 14s; animation-delay: 3s; 
-  }
-  .petal-6 { 
-    width: 25px; height: 25px; left: 75%; top: -15%; 
-    animation-duration: 17s; animation-delay: 1.5s; 
-  }
-  .petal-7 { 
-    width: 18px; height: 18px; left: 85%; top: -5%; 
-    animation-duration: 12s; animation-delay: 2.5s; 
-  }
-  .petal-8 { 
-    width: 20px; height: 20px; left: 40%; top: -15%; 
-    animation-duration: 18s; animation-delay: 4s; 
-  }
-  .petal-9 { 
-    width: 15px; height: 15px; left: 60%; top: -10%; 
-    animation-duration: 14s; animation-delay: 3.5s; 
-  }
-  .petal-10 { 
-    width: 22px; height: 22px; left: 90%; top: -20%; 
-    animation-duration: 16s; animation-delay: 2.5s; 
-  }
-  
-  @keyframes sakuraFall {
-    0% {
-      transform: translateY(-10%) rotate(0deg);
-    }
-    25% {
-      transform: translateY(25%) translateX(10%) rotate(45deg);
-    }
-    50% {
-      transform: translateY(50%) translateX(-10%) rotate(90deg);
-    }
-    75% {
-      transform: translateY(75%) translateX(10%) rotate(135deg);
-    }
-    100% {
-      transform: translateY(100vh) translateX(-10%) rotate(180deg);
-    }
-  }
-  
-  /* Main container styling */
   .main-container {
     position: relative;
-    margin-top: 30px;
-  }
-  
-  /* Anime character */
-  .anime-character {
-    position: absolute;
-    width: 250px;
-    height: 250px;
-    background-image: url('https://i.pinimg.com/originals/10/91/94/1091948c6b80b65b9eef8c163f0ae42a.png');
-    background-size: contain;
-    background-repeat: no-repeat;
-    background-position: bottom right;
-    right: -80px;
-    bottom: -40px;
-    z-index: 10;
-    opacity: 0.8;
-    pointer-events: none;
-    transform: scaleX(-1);
-  }
-  
-  /* Form cards container */
-  .forms-container {
-    padding-top: 20px;
-    padding-bottom: 100px;
-  }
-  
-  .perspective {
-    perspective: 800px;
+    overflow: hidden;
+    padding: 1.5rem;
+    min-height: 80vh;
   }
   
   .card-3d-wrapper {
     position: relative;
     width: 100%;
-    height: auto;
-    transform-style: preserve-3d;
-    transition: all 600ms ease-out;
+    min-height: 500px;
   }
   
   .card-front {
-    width: 100%;
-    height: 100%;
-    background-color: rgba(18, 21, 39, 0.8);
-    background-image: url('https://www.transparenttextures.com/patterns/cartographer.png');
-    position: relative;
-    border-radius: 16px;
-    padding: 30px;
-    box-shadow: 0 12px 35px rgba(16, 39, 112, 0.25);
+    background-color: rgba(var(--primary-rgb), 0.1);
     backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    transform-style: preserve-3d;
+    border-radius: 1rem;
+    padding: 2rem;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
   }
   
   .center-wrap {
-    position: relative;
-    width: 100%;
-    transform-style: preserve-3d;
+    padding: 1rem;
   }
   
-  /* Form styling */
   .form-group {
     position: relative;
-    margin-bottom: 15px;
+    margin-bottom: 1.5rem;
   }
   
   .form-control {
     width: 100%;
-    height: 48px;
-    background-color: rgba(255, 255, 255, 0.07);
+    background-color: rgba(255, 255, 255, 0.08);
     border: none;
-    border-radius: 12px;
-    padding: 13px 20px;
-    padding-left: 45px;
-    font-size: 14px;
-    color: #fff;
-    transition: all 0.3s ease;
     outline: none;
+    border-radius: 0.5rem;
+    padding: 0.75rem 1rem;
+    padding-left: 2.5rem;
+    color: white;
+    transition: all 0.3s;
   }
   
   .form-control:focus {
-    background-color: rgba(255, 255, 255, 0.1);
-    box-shadow: 0 0 10px rgba(255, 165, 255, 0.25);
-  }
-  
-  .form-control::placeholder {
-    color: rgba(255, 255, 255, 0.4);
+    background-color: rgba(255, 255, 255, 0.12);
+    box-shadow: 0 0 0 2px rgba(var(--primary-rgb), 0.5);
   }
   
   .input-icon {
-    font-family: 'unicons';
     position: absolute;
-    top: 0;
-    left: 18px;
-    height: 48px;
-    font-size: 18px;
-    line-height: 48px;
-    color: rgba(255, 255, 255, 0.4);
-    transition: all 0.3s ease;
+    left: 1rem;
+    top: 0.85rem;
+    color: rgba(255, 255, 255, 0.5);
   }
   
-  /* Button styling */
-  .btn-login, .btn-register {
+  /* Buttons */
+  .btn-login, .btn-register, .btn-logout {
     width: 100%;
-    height: 50px;
-    border-radius: 12px;
-    text-align: center;
-    letter-spacing: 1px;
-    font-size: 14px;
-    font-weight: 600;
-    display: flex;
-    align-items: center;
-    justify-content: center;
     border: none;
+    border-radius: 0.5rem;
+    padding: 0.75rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    letter-spacing: 1px;
+    transition: all 0.3s;
     cursor: pointer;
-    transition: all 0.3s ease-in-out;
+    color: white;
   }
   
   .btn-login {
-    background: linear-gradient(45deg, #FF2B73, #FF5C8A);
-    color: #fff;
-    box-shadow: 0 10px 20px -10px rgba(255, 43, 115, 0.5);
+    background: linear-gradient(45deg, #FF5757, #F54EA2);
+    box-shadow: 0 4px 15px rgba(245, 78, 162, 0.3);
   }
   
   .btn-register {
-    background: linear-gradient(45deg, #6F42C1, #8A63D2);
-    color: #fff;
-    box-shadow: 0 10px 20px -10px rgba(111, 66, 193, 0.5);
+    background: linear-gradient(45deg, #4A9FFF, #7C4DFF);
+    box-shadow: 0 4px 15px rgba(124, 77, 255, 0.3);
+  }
+  
+  .btn-logout {
+    background: linear-gradient(45deg, #434343, #656565);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
   }
   
   .btn-login:hover, .btn-register:hover {
@@ -931,144 +303,72 @@ import Layout from "~/layouts/Layout.astro";
     transform: translateY(0);
   }
   
-  /* Social login */
+  /* Social icons */
   .social-login {
-    margin-top: 20px;
+    margin-top: 1.5rem;
   }
   
   .social-icons {
     display: flex;
     justify-content: center;
-    gap: 15px;
+    align-items: center;
+    gap: 1rem;
   }
   
   .social-icon {
-    width: 40px;
-    height: 40px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    width: 2.5rem;
+    height: 2.5rem;
     border-radius: 50%;
-    background-color: rgba(255, 255, 255, 0.1);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: rgba(255, 255, 255, 0.08);
     color: white;
-    transition: all 0.3s ease;
+    transition: all 0.3s;
   }
   
   .social-icon:hover {
-    background-color: rgba(255, 255, 255, 0.2);
+    background-color: rgba(255, 255, 255, 0.15);
     transform: translateY(-3px);
   }
   
-  /* Animation classes */
-  .rotate-animation-in {
-    animation: rotateIn 0.7s ease-in-out forwards;
+  /* Profile styles */
+  .user-avatar {
+    display: flex;
+    justify-content: center;
   }
   
-  .rotate-animation-out {
-    animation: rotateOut 0.7s ease-in-out forwards;
-  }
-  
-  @keyframes rotateIn {
-    0% {
-      transform: rotateY(-90deg) translateZ(50px);
-      opacity: 0;
-    }
-    100% {
-      transform: rotateY(0) translateZ(0);
-      opacity: 1;
-    }
-  }
-  
-  @keyframes rotateOut {
-    0% {
-      transform: rotateY(0) translateZ(0);
-      opacity: 1;
-    }
-    100% {
-      transform: rotateY(90deg) translateZ(50px);
-      opacity: 0;
-    }
-  }
-  
-  .hidden {
-    display: none;
-  }
-  
-  /* Font Awesome Icons (simplified implementation) */
-  .fab {
-    font-family: 'Font Awesome 5 Brands';
-    display: inline-block;
-  }
-  
-  .fab.fa-facebook-f:before { content: "f"; }
-  .fab.fa-twitter:before { content: "t"; }
-  .fab.fa-google:before { content: "G"; }
-  
-  /* Unicons alternative for input icons */
-  .uil {
-    display: inline-block;
-    font-family: sans-serif;
-  }
-  
-  .uil.uil-user:before { content: "👤"; }
-  .uil.uil-at:before { content: "📧"; }
-  .uil.uil-lock-alt:before { content: "🔒"; }
-  .uil.uil-lock-access:before { content: "🔐"; }
-  
-  /* Responsive adjustments */
-  @media (max-width: 768px) {
-    .anime-character {
-      opacity: 0.4;
-      right: -100px;
-    }
-  }
-  
-  @media (max-width: 480px) {
-    .anime-character {
-      opacity: 0.2;
-    }
-  }
-  
-  /* User profile styling */
   .avatar-circle {
-    width: 80px;
-    height: 80px;
-    background-color: rgba(99, 102, 241, 0.5);
+    width: 100px;
+    height: 100px;
+    background: linear-gradient(45deg, rgba(74, 159, 255, 0.8), rgba(124, 77, 255, 0.8));
     border-radius: 50%;
     display: flex;
     justify-content: center;
     align-items: center;
-    margin: 0 auto;
-    border: 2px solid rgba(255, 255, 255, 0.2);
-    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+    color: white;
+    box-shadow: 0 4px 15px rgba(124, 77, 255, 0.4);
   }
   
   .avatar-text {
-    font-size: 2.5rem;
+    font-size: 3rem;
     font-weight: bold;
-    color: white;
   }
   
-  .btn-logout {
-    width: 100%;
-    height: 44px;
-    padding: 0 15px;
-    background: linear-gradient(45deg, #ff344d, #d10a22);
-    border-radius: 4px;
-    font-size: 13px;
-    font-weight: 700;
-    letter-spacing: 1px;
-    color: white;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-    border: none;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    text-transform: uppercase;
+  .perspective {
+    perspective: 1000px;
   }
   
-  .btn-logout:hover {
-    background: linear-gradient(45deg, #d10a22, #ff344d);
-    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.4);
-    transform: translateY(-1px);
+  .hidden {
+    display: none !important;
+  }
+  
+  @keyframes fade-out {
+    from { opacity: 1; }
+    to { opacity: 0; }
+  }
+  
+  .animate-fade-out {
+    animation: fade-out 0.3s forwards;
   }
 </style> 

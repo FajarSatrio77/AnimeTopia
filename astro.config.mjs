@@ -1,7 +1,7 @@
 // @ts-check
 import { defineConfig } from "astro/config";
 import tailwindcss from "@tailwindcss/vite";
-import vercel from "@astrojs/vercel/serverless";
+import cloudflare from "@astrojs/cloudflare";
 import playformCompress from "@playform/compress";
 import react from "@astrojs/react";
 
@@ -16,7 +16,7 @@ export default defineConfig({
 
   output: "server",
 
-  adapter: vercel({
+  adapter: cloudflare({
     webAnalytics: {
       enabled: true,
     },

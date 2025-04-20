@@ -6,7 +6,16 @@ import Layout from "~/layouts/Layout.astro";
   <div class="container mx-auto py-6 px-4">
     <h1 class="text-2xl font-bold mb-6">Riwayat Tontonan</h1>
     
-    <div id="history-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+    <div id="auth-warning" class="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 mb-6 rounded">
+      <div class="flex items-center">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+        </svg>
+        <span>Anda perlu <a href="/akun" class="text-blue-600 underline">login</a> untuk melihat riwayat tontonan.</span>
+      </div>
+    </div>
+    
+    <div id="history-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 hidden">
       <!-- Skeleton loader untuk riwayat tontonan -->
       <div class="skeleton-loader">
         <div class="flex gap-4 p-4 bg-base-300 rounded-lg animate-pulse">
@@ -30,21 +39,59 @@ import Layout from "~/layouts/Layout.astro";
       <p class="text-gray-500 mb-6">Anda belum menonton anime apapun</p>
       <a href="/" class="btn btn-primary">Mulai Menonton</a>
     </div>
+    
+    <!-- Login required state -->
+    <div id="login-required" class="hidden text-center py-12">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 mx-auto text-gray-400 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+      </svg>
+      <h3 class="text-xl font-semibold mb-2">Login diperlukan</h3>
+      <p class="text-gray-500 mb-6">Anda perlu login untuk melihat riwayat tontonan</p>
+      <a href="/akun" class="btn btn-primary">Login Sekarang</a>
+    </div>
   </div>
 </Layout>
 
-<script is:inline>
-  document.addEventListener('DOMContentLoaded', () => {
+<script>
+  document.addEventListener('DOMContentLoaded', async () => {
     const historyContainer = document.getElementById('history-container');
     const emptyHistory = document.getElementById('empty-history');
+    const loginRequired = document.getElementById('login-required');
+    const authWarning = document.getElementById('auth-warning');
     
     // Flag untuk mencegah multiple redundant renders
     let isLoading = false;
+
+    // Import watch history utility in the background
+    const watchHistoryPromise = import('/src/utils/watch-history.js');
     
-    // Cache untuk data history
-    let historyCache = null;
-    let lastCacheTime = 0;
-    const CACHE_TTL = 30000; // 30 detik
+    // Check if user is logged in
+    function isAuthenticated() {
+      try {
+        const userData = localStorage.getItem('animetopia_user');
+        if (!userData) return false;
+        
+        // Parse the data to ensure it's valid
+        const user = JSON.parse(userData);
+        return !!user && !!user.uid;
+      } catch (error) {
+        console.error('Error checking authentication status:', error);
+        return false;
+      }
+    }
+    
+    // Initialize page and load history
+    function initPage() {
+      if (authWarning) {
+        if (isAuthenticated()) {
+          authWarning.classList.add('hidden');
+        } else {
+          authWarning.classList.remove('hidden');
+        }
+      }
+      
+      displayWatchHistory();
+    }
     
     // Fungsi debounce untuk mencegah pemanggilan function berulang kali dalam waktu singkat
     function debounce(func, wait) {
@@ -73,24 +120,6 @@ import Layout from "~/layouts/Layout.astro";
       });
     }
     
-    // Fungsi untuk mendapatkan data riwayat dari localStorage
-    function getWatchHistory() {
-      // Gunakan cache jika masih valid
-      const now = Date.now();
-      if (historyCache && (now - lastCacheTime < CACHE_TTL)) {
-        return historyCache;
-      }
-      
-      const history = localStorage.getItem('animeWatchHistory');
-      const parsedHistory = history ? JSON.parse(history) : [];
-      
-      // Simpan ke cache
-      historyCache = parsedHistory;
-      lastCacheTime = now;
-      
-      return parsedHistory;
-    }
-    
     // Fungsi untuk menampilkan riwayat tontonan
     async function displayWatchHistory() {
       // Mencegah pemanggilan simultan
@@ -98,15 +127,37 @@ import Layout from "~/layouts/Layout.astro";
       isLoading = true;
       
       try {
+        // Check if user is logged in
+        if (!isAuthenticated()) {
+          if (historyContainer) historyContainer.classList.add('hidden');
+          if (emptyHistory) emptyHistory.classList.add('hidden');
+          if (loginRequired) loginRequired.classList.remove('hidden');
+          if (authWarning) authWarning.classList.remove('hidden');
+          isLoading = false;
+          return;
+        }
+        
+        // Hide login required message
+        if (loginRequired) loginRequired.classList.add('hidden');
+        if (authWarning) authWarning.classList.add('hidden');
+        
+        // Get watch history module
+        const { getWatchHistory, removeFromWatchHistory } = await watchHistoryPromise;
+        
+        // Get watch history with the optimized utility
         const watchHistory = getWatchHistory();
         
         // Jika tidak ada riwayat, tampilkan pesan kosong
         if (!watchHistory || watchHistory.length === 0) {
-          historyContainer.classList.add('hidden');
-          emptyHistory.classList.remove('hidden');
+          if (historyContainer) historyContainer.classList.add('hidden');
+          if (emptyHistory) emptyHistory.classList.remove('hidden');
           isLoading = false;
           return;
         }
+        
+        // Show history container
+        if (historyContainer) historyContainer.classList.remove('hidden');
+        if (emptyHistory) emptyHistory.classList.add('hidden');
         
         // Preload gambar untuk 5 item pertama
         Promise.all(
@@ -155,12 +206,40 @@ import Layout from "~/layouts/Layout.astro";
           });
           
           // Hapus skeletons
-          historyContainer.innerHTML = '';
-          historyContainer.appendChild(fragment);
+          if (historyContainer) {
+            historyContainer.innerHTML = '';
+            historyContainer.appendChild(fragment);
+          }
           
           // Tambahkan event listener untuk tombol hapus
           document.querySelectorAll('.remove-history').forEach(button => {
-            button.addEventListener('click', handleRemoveFromHistory);
+            button.addEventListener('click', (e) => {
+              e.preventDefault();
+              const animeId = e.currentTarget.dataset.id;
+              if (!animeId) return;
+              
+              // Hapus dari history menggunakan utilitas baru
+              removeFromWatchHistory(animeId);
+              
+              // Memberikan feedback visual cepat
+              const historyItem = e.currentTarget.closest('.history-item');
+              if (historyItem) {
+                // Animasi fadeout
+                historyItem.style.opacity = '0.5';
+                historyItem.style.transform = 'translateX(10px)';
+                
+                // Hapus elemen setelah animasi
+                setTimeout(() => {
+                  historyItem.remove();
+                  
+                  // Cek jika history kosong
+                  if (historyContainer && historyContainer.children.length === 0) {
+                    historyContainer.classList.add('hidden');
+                    if (emptyHistory) emptyHistory.classList.remove('hidden');
+                  }
+                }, 300);
+              }
+            });
           });
         };
         
@@ -174,62 +253,23 @@ import Layout from "~/layouts/Layout.astro";
       }
     }
     
-    // Handler untuk menghapus item dari history
-    function handleRemoveFromHistory(e) {
-      e.preventDefault();
-      const button = e.currentTarget;
-      const animeId = button.dataset.id;
-      if (!animeId) return;
-      
-      // Hapus dari cache dan localStorage
-      removeFromHistory(animeId);
-      
-      // Memberikan feedback visual cepat
-      const historyItem = button.closest('.history-item');
-      if (historyItem) {
-        // Animasi fadeout
-        historyItem.style.opacity = '0.5';
-        historyItem.style.transform = 'translateX(10px)';
-        
-        // Hapus elemen setelah animasi
-        setTimeout(() => {
-          historyItem.remove();
-          
-          // Cek jika history kosong
-          if (historyContainer.children.length === 0) {
-            historyContainer.classList.add('hidden');
-            emptyHistory.classList.remove('hidden');
-          }
-        }, 300);
-      }
-    }
-    
-    // Fungsi untuk menghapus anime dari riwayat
-    function removeFromHistory(animeId) {
-      let watchHistory = getWatchHistory();
-      watchHistory = watchHistory.filter(anime => anime.id !== animeId);
-      localStorage.setItem('animeWatchHistory', JSON.stringify(watchHistory));
-      
-      // Reset cache
-      historyCache = watchHistory;
-      lastCacheTime = Date.now();
-    }
-    
     // Tampilkan riwayat dengan minimal delay
-    requestAnimationFrame(() => {
-      displayWatchHistory();
-    });
+    requestAnimationFrame(initPage);
     
     // Tambahkan event listener untuk perubahan storage
-    window.addEventListener('storage', debounce(() => {
-      // Reset cache agar data baru bisa dimuat
-      historyCache = null;
-      displayWatchHistory();
+    window.addEventListener('storage', debounce((e) => {
+      if (e.key === 'animetopia_user' || e.key?.startsWith('animeWatchHistory')) {
+        initPage();
+      }
     }, 300));
+    
+    // Also run after Astro view transitions
+    document.addEventListener('astro:page-load', initPage);
+    document.addEventListener('astro:after-swap', initPage);
   });
 </script>
 
-<style is:inline>
+<style>
   .history-item {
     transition: opacity 0.3s ease, transform 0.3s ease;
     will-change: opacity, transform;
