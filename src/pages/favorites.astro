@@ -15,7 +15,7 @@ import Layout from "~/layouts/Layout.astro";
         <span>Anda perlu <a href="/akun" class="text-blue-600 underline">login</a> untuk melihat dan mengelola anime favorit.</span>
       </div>
     </div>
-    
+
     <div id="favorites-container" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 hidden">
       <!-- Skeleton loader untuk anime favorit -->
       <div class="skeleton-loader">
@@ -60,7 +60,7 @@ import Layout from "~/layouts/Layout.astro";
   </div>
 </Layout>
 
-<script>
+  <script>
   import { getUserFavorites, removeFromFavorites } from "../utils/favorites.js";
   
   // Flag untuk mencegah multiple redundant renders
@@ -229,18 +229,18 @@ import Layout from "~/layouts/Layout.astro";
                   src="${anime.image || '/placeholder.jpg'}" 
                   alt="${anime.title}"
                   class="w-full aspect-[2/3] object-cover"
-                  loading="lazy"
+              loading="lazy"
                   onerror="this.src='https://via.placeholder.com/300x450?text=No+Image'"
                 />
-              </a>
-              <button 
+                </a>
+                <button
                 class="absolute top-2 right-2 btn btn-circle btn-sm btn-pink remove-favorite" 
                 data-id="${anime.id}"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" class="size-4" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" />
-                </svg>
-              </button>
+                    <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" />
+                  </svg>
+                </button>
             </div>
             <div class="p-3">
               <a href="/watch/${anime.id}/${anime.slug}" class="block">
@@ -303,7 +303,7 @@ import Layout from "~/layouts/Layout.astro";
       loadFavorites();
     }, 300);
   }
-</script>
+  </script>
 
 <style>
   .btn-pink {

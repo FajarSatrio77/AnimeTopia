@@ -14,20 +14,5 @@ export default defineConfig({
     },
   },
 
-  output: "server",
-
-  adapter: cloudflare({
-    webAnalytics: {
-      enabled: true,
-    },
-    imagesConfig: {
-      sizes: [240, 340, 640, 768, 1024],
-      domains: [],
-      minimumCacheTTL: 60,
-    },
-    edgeMiddleware: true,
-    imageService: true,
-  }),
-
   integrations: [playformCompress(), react()],
 });
