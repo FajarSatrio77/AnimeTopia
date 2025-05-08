@@ -3,12 +3,13 @@ import UserMenu from './UserMenu.astro';
 ---
 
 <div
-  class="sticky top-0 left-0 right-0 navbar bg-base-100/90 backdrop-blur shadow-sm z-10 rounded-b-lg"
+  id="main-navbar"
+  class="sticky top-0 left-0 right-0 navbar bg-[#2D2D2D] backdrop-blur-none shadow-sm z-[100] rounded-b-lg transition-all duration-300"
 >
   <div class="navbar-start">
     <!-- Mobile Menu (Hamburger) -->
     <div class="dropdown lg:hidden">
-      <label tabindex="0" role="button" class="btn btn-ghost btn-circle hamburger-btn">
+      <label tabindex="0" role="button" class="btn btn-ghost btn-circle hamburger-btn relative z-[101]">
         <div class="hamburger">
           <span class="line"></span>
           <span class="line"></span>
@@ -17,16 +18,42 @@ import UserMenu from './UserMenu.astro';
       </label>
       <ul
         tabindex="0"
-        class="menu menu-sm dropdown-content bg-base-100 rounded-box z-[20] mt-3 w-52 p-2 shadow animate-fadeIn mobile-menu"
+        class="menu menu-sm dropdown-content bg-[#2D2D2D] rounded-box z-[102] mt-3 w-64 p-2 shadow-lg animate-fadeIn mobile-menu fixed left-2 top-16"
         id="mobile-menu"
       >
-        <li><a href="/">Ongoing</a></li>
-        <li><a href="/completed">Completed</a></li>
-        <li class="divider divider-horizontal my-1"></li>
-        <li class="guest-only"><a href="/akun">Login / Daftar</a></li>
-        <li class="user-only"><a href="/favorites">Favorit <span id="mobile-favorites-count" class="badge badge-sm badge-primary ml-1 hidden">0</span></a></li>
-        <li class="user-only"><a href="/history">Riwayat Tontonan</a></li>
-        <li class="user-only"><a href="/akun">Profile</a></li>
+        <!-- Search Bar for Mobile -->
+        <li class="mb-2">
+          <form action="/search" method="get" class="join w-full">
+            <input type="text" name="q" placeholder="Cari anime..." class="input input-bordered join-item w-full" />
+            <button class="btn btn-primary join-item">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="h-5 w-5"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+              </svg>
+            </button>
+          </form>
+        </li>
+        <div class="bg-[#2D2D2D] rounded-lg shadow-inner">
+          <li><a href="/" class="hover:bg-primary/20">Ongoing</a></li>
+          <li><a href="/completed" class="hover:bg-primary/20">Completed</a></li>
+          <li><a href="/genre" class="hover:bg-primary/20">Genre</a></li>
+          <li><a href="/trending" class="hover:bg-primary/20">Terlaris</a></li>
+          <li><a href="/top-rated" class="hover:bg-primary/20">Rating Tertinggi</a></li>
+          <li class="divider my-1"></li>
+          <li class="guest-only"><a href="/akun" class="hover:bg-primary/20">Login / Daftar</a></li>
+          <li class="user-only"><a href="/favorites" class="hover:bg-primary/20">Favorit <span id="mobile-favorites-count" class="badge badge-sm badge-primary ml-1 hidden">0</span></a></li>
+          <li class="user-only"><a href="/history" class="hover:bg-primary/20">Riwayat Tontonan</a></li>
+          <li class="user-only"><a href="/akun" class="hover:bg-primary/20">Profile</a></li>
+        </div>
       </ul>
     </div>
     
@@ -35,6 +62,9 @@ import UserMenu from './UserMenu.astro';
       <ul class="menu menu-horizontal px-1 desktop-nav">
         <li><a href="/" class={Astro.url.pathname === "/" ? "active" : ""}>Ongoing</a></li>
         <li><a href="/completed" class={Astro.url.pathname === "/completed" ? "active" : ""}>Completed</a></li>
+        <li><a href="/genre" class={Astro.url.pathname === "/genre" ? "active" : ""}>Genre</a></li>
+        <li><a href="/trending" class={Astro.url.pathname === "/trending" ? "active" : ""}>Terlaris</a></li>
+        <li><a href="/top-rated" class={Astro.url.pathname === "/top-rated" ? "active" : ""}>Rating Tertinggi</a></li>
       </ul>
     </div>
     
@@ -48,8 +78,8 @@ import UserMenu from './UserMenu.astro';
   </div>
   
   <div class="navbar-end">
-    <!-- Search Button -->
-    <div class="dropdown dropdown-end mr-2">
+    <!-- Search Button (Desktop Only) -->
+    <div class="dropdown dropdown-end mr-2 hidden lg:block">
       <button tabindex="0" class="btn btn-ghost btn-circle">
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -65,7 +95,7 @@ import UserMenu from './UserMenu.astro';
             d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
         </svg>
       </button>
-      <div tabindex="0" class="dropdown-content z-10 menu p-2 shadow bg-base-100 rounded-box w-80 animate-fadeIn">
+      <div tabindex="0" class="dropdown-content z-[103] menu p-2 shadow bg-[#2D2D2D] rounded-box w-80 animate-fadeIn">
         <form action="/search" method="get" class="p-2">
           <div class="join w-full">
             <input type="text" name="q" placeholder="Cari anime..." class="input input-bordered join-item w-full" />
@@ -74,6 +104,39 @@ import UserMenu from './UserMenu.astro';
         </form>
       </div>
     </div>
+    
+    <!-- Mobile Search Button -->
+    <button class="btn btn-ghost btn-circle lg:hidden relative z-[101]" id="mobile-search-btn">
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        class="h-5 w-5"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke="currentColor"
+      >
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+      </svg>
+    </button>
+
+    <!-- Mobile Search Modal -->
+    <dialog id="search-modal" class="modal modal-bottom">
+      <div class="modal-box bg-[#2D2D2D] p-4">
+        <h3 class="font-bold text-lg mb-4">Cari Anime</h3>
+        <form action="/search" method="get">
+          <div class="join w-full">
+            <input type="text" name="q" placeholder="Cari anime..." class="input input-bordered join-item w-full" />
+            <button class="btn btn-primary join-item">Cari</button>
+          </div>
+        </form>
+      </div>
+      <form method="dialog" class="modal-backdrop bg-black/80">
+        <button>close</button>
+      </form>
+    </dialog>
     
     <!-- User Menu (Desktop) -->
     <div class="hidden lg:block">
@@ -119,19 +182,52 @@ import UserMenu from './UserMenu.astro';
     transform: translateY(-7px) rotate(-45deg);
   }
   
-  @keyframes fadeIn {
-    from {
+  /* Mobile menu backdrop */
+  .mobile-menu::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: -1;
       opacity: 0;
-      transform: translateY(-10px);
+    transition: opacity 0.3s ease;
+    pointer-events: none;
     }
-    to {
+
+  .mobile-menu:focus-within::before {
       opacity: 1;
-      transform: translateY(0);
-    }
   }
-  
-  .animate-fadeIn {
-    animation: fadeIn 0.2s ease-out forwards;
+
+  /* Ensure mobile menu is above other content and stays visible */
+  .mobile-menu {
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    display: none;
+  }
+
+  /* Keep menu visible when dropdown is focused */
+  .dropdown:focus-within .mobile-menu {
+    display: block !important;
+  }
+
+  /* Prevent menu from disappearing on interaction */
+  .mobile-menu:hover,
+  .mobile-menu:focus-within {
+    display: block !important;
+  }
+
+  /* Modal styles */
+  .modal-box {
+    max-height: 90vh;
+  }
+
+  @media (max-width: 640px) {
+    .mobile-menu {
+      max-height: calc(100vh - 5rem);
+      overflow-y: auto;
+    }
   }
   
   /* Desktop Navigation Styling */
@@ -364,4 +460,70 @@ import UserMenu from './UserMenu.astro';
   // Also run on Astro view transitions
   document.addEventListener('astro:page-load', updateAllMenus);
   document.addEventListener('astro:after-swap', updateAllMenus);
+
+  // Navbar scroll effect
+  function handleScroll() {
+    const navbar = document.getElementById('main-navbar');
+    if (!navbar) return;
+
+    if (window.scrollY > 20) {
+      navbar.classList.remove('bg-[#2D2D2D]');
+      navbar.classList.add('bg-[#2D2D2D]/80');
+      navbar.classList.add('backdrop-blur');
+    } else {
+      navbar.classList.add('bg-[#2D2D2D]');
+      navbar.classList.remove('bg-[#2D2D2D]/80');
+      navbar.classList.remove('backdrop-blur');
+    }
+  }
+
+  // Add scroll event listener
+  window.addEventListener('scroll', handleScroll);
+  
+  // Handle page transitions
+  document.addEventListener('astro:after-swap', () => {
+    handleScroll(); // Re-check scroll position after page transition
+  });
+
+  // Mobile search modal functionality
+  const searchBtn = document.getElementById('mobile-search-btn');
+  const searchModal = document.getElementById('search-modal') as HTMLDialogElement;
+
+  if (searchBtn && searchModal) {
+    searchBtn.addEventListener('click', () => {
+      searchModal.showModal();
+      // Focus the search input when modal opens
+      const searchInput = searchModal.querySelector('input[name="q"]') as HTMLInputElement;
+      if (searchInput) {
+        searchInput.focus();
+      }
+    });
+  }
+
+  // Close mobile menu when clicking outside
+  document.addEventListener('click', (e) => {
+    const mobileMenu = document.getElementById('mobile-menu');
+    const hamburgerBtn = document.querySelector('.hamburger-btn');
+    
+    if (mobileMenu && hamburgerBtn) {
+      const isClickInside = mobileMenu.contains(e.target as Node) || 
+                          hamburgerBtn.contains(e.target as Node);
+      
+      // Only close if clicking outside AND the menu is actually visible
+      if (!isClickInside && 
+          mobileMenu.classList.contains('dropdown-content') && 
+          getComputedStyle(mobileMenu).display !== 'none') {
+        // Instead of removing focus, we'll handle this more explicitly
+        const dropdownTrigger = document.querySelector('.dropdown') as HTMLElement;
+        if (dropdownTrigger) {
+          dropdownTrigger.blur();
+          // Remove focus from any focused elements inside the menu
+          const focusedElement = mobileMenu.querySelector(':focus') as HTMLElement;
+          if (focusedElement) {
+            focusedElement.blur();
+          }
+        }
+      }
+    }
+  });
 </script>

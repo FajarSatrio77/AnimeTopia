@@ -3,19 +3,50 @@ const API_BASE_URL = "https://api-kura.animez.my.id/api";
 /**
  * Fetch data from the given endpoint
  * @param {string} endpoint - API endpoint (e.g., "home" or "ongoing")
- * @param {number} [page] - Optional page number for pagination
+ * @param {Object} options - Optional parameters
+ * @param {number} [options.page] - Page number for pagination
+ * @param {number} [options.limit] - Number of items per page
  * @returns {Promise<object>} - Fetched JSON data
  */
-export async function fetchData(endpoint, page = null) {
+export async function fetchData(endpoint, options = {}) {
   try {
-    const url = page
-      ? `${API_BASE_URL}/${endpoint}?page=${page}`
-      : `${API_BASE_URL}/${endpoint}`;
+    let url = `${API_BASE_URL}/${endpoint}`;
+    
+    // Convert endpoint for trending and top-rated
+    if (endpoint === "trending") {
+      url = `${API_BASE_URL}/anime/popular`;
+    } else if (endpoint === "top-rated") {
+      url = `${API_BASE_URL}/anime/top`;
+    }
+    
+    // Add query parameters
+    const params = new URLSearchParams();
+    
+    if (options.page) {
+      params.append('page', options.page);
+    }
+    
+    if (options.limit) {
+      params.append('limit', options.limit);
+    }
+    
+    // Append parameters to URL if any exist
+    const queryString = params.toString();
+    if (queryString) {
+      url += url.includes('?') ? `&${queryString}` : `?${queryString}`;
+    }
+    
+    console.log('Fetching:', url); // Debug log
+    
     const response = await fetch(url);
-    return await response.json();
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    const data = await response.json();
+    return data;
   } catch (error) {
     console.error("Error fetching data:", error);
-    return null;
+    return { results: [] };
   }
 }
 

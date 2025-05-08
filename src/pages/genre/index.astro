@@ -1,0 +1,41 @@
+---
+export const prerender = false;
+import Layout from "~/layouts/Layout.astro";
+
+// Daftar genre anime yang umum
+const genres = [
+  "Action",
+  "Adventure",
+  "Comedy",
+  "Drama",
+  "Fantasy",
+  "Horror",
+  "Mystery",
+  "Romance",
+  "Sci-Fi",
+  "Slice of Life",
+  "Sports",
+  "Supernatural",
+  "Thriller"
+];
+---
+
+<Layout title="Genre Anime - AnimeTopia">
+  <div class="container mx-auto px-4 py-8">
+    <h1 class="text-3xl md:text-4xl font-bold mb-8 text-center">Genre Anime</h1>
+    
+    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+      {genres.map((genre) => (
+        <a
+          href={`/genre/${genre.toLowerCase().replace(/ /g, '-')}`}
+          class="card bg-base-200 hover:bg-primary hover:text-primary-content transition-all duration-300 transform hover:scale-105"
+        >
+          <div class="card-body p-6 text-center">
+            <h2 class="text-xl font-bold capitalize">{genre}</h2>
+            <div class="mt-2 text-sm opacity-75">Lihat Anime</div>
+          </div>
+        </a>
+      ))}
+    </div>
+  </div>
+</Layout> 

@@ -2,65 +2,12 @@
 export const prerender = false;
 import Layout from "~/layouts/Layout.astro";
 import Table from "~/components/ui/Table.astro";
-import { fetchAnimeData, fetchData } from "~/utils/api";
-import { checkPremiumStatus } from "~/utils/subscription";
+import { fetchAnimeData } from "~/utils/api";
 
-// Get user data and check premium status
-let isPremium = false;
-if (Astro.cookies.has('user')) {
-  try {
-    const userData = JSON.parse(Astro.cookies.get('user').value);
-    if (userData?.uid) {
-      isPremium = await checkPremiumStatus(userData.uid);
-    }
-  } catch (error) {
-    console.error('Error checking premium status:', error);
-  }
-}
-
-// Definisikan rute statis yang akan di-prerender
-export async function getStaticPaths() {
-  try {
-    // Ambil data ongoing dan completed untuk prerender halaman-halaman populer
-    const ongoingData = await fetchData("ongoing");
-    const completedData = await fetchData("completed");
-    
-    let paths = [];
-    
-    // Gabungkan data dari ongoing dan completed
-    const allAnime = [
-      ...(ongoingData?.results || []).slice(0, 10), // 10 anime ongoing terbaru
-      ...(completedData?.results || []).slice(0, 10) // 10 anime completed terbaru
-    ];
-    
-    // Generate paths untuk setiap anime
-    for (const anime of allAnime) {
-      if (anime.id && anime.slug) {
-        paths.push({
-          params: { id: anime.id, slug: anime.slug },
-          props: { preloaded: true }
-        });
-      }
-    }
-    
-    return paths;
-  } catch (error) {
-    console.error("Error generating static paths:", error);
-    return [];
-  }
-}
-
-// Get params
 const { id, slug } = Astro.params;
 const episode = Astro.url.searchParams.get("episode") ?? null;
-const preloaded = Astro.props.preloaded || false;
 
-// parameters validation
-if (!id || !slug) {
-  return new Response(null, { status: 404, statusText: "Not Found" });
-}
-
-let data;
+let data = null;
 let isError = false;
 
 try {
@@ -75,476 +22,139 @@ try {
   isError = true;
 }
 
-// Jika ada error dan ini prerender, skip halaman ini
-if (isError && import.meta.env.PROD && preloaded) {
-  return new Response(null, { status: 404, statusText: "Anime not found" });
-}
-
-// Default data jika ada error tapi bukan saat prerender
-if (isError && !preloaded) {
-  data = {
-    results: {
-      title: "Loading...",
-      image: "/placeholder.jpg",
-      episode: [],
-      details: [],
-      description: "Loading data anime..."
-    }
-  };
-}
-
 // Ekstrak data episode dengan aman
 const episodes = data?.results?.episode || [];
 const totalEp = episodes?.at?.(-1) ?? 1;
 const isFinished = data?.results?.details?.[2]?.data?.includes?.("Selesai") || false;
 const checkEpSelesai = episode ?? (isFinished ? episodes[0] : totalEp);
-
-// Check if user can access this episode
-const canAccessEpisode = isPremium || checkEpSelesai === '1' || checkEpSelesai === 1;
 ---
 
-<!-- Include Vidstack player theme and video styles -->
-<link rel="stylesheet" href="https://cdn.vidstack.io/player/theme.css" />
-<link rel="stylesheet" href="https://cdn.vidstack.io/player/video.css" />
-
-<Layout title={data?.results?.title || "Loading..."} description="">
-  <div class="flex justify-between items-center my-4">
-    <h1 class="text-xl font-bold line-clamp-1">{data?.results?.title || "Loading..."}</h1>
-    <div class="flex gap-2">
-      <a href="/history" class="btn btn-outline btn-sm flex items-center gap-1">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-          <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd" />
-        </svg>
-        Riwayat
-      </a>
-    </div>
-  </div>
+<Layout title={`${data?.results?.title || "Loading..."} - AnimeTopia`}>
+  <div class="py-4">
+    <h1 class="text-xl font-bold mb-2">{data?.results?.title || "Loading..."}</h1>
   
   <div class="grid grid-cols-1 gap-2 my-2">
     <!-- Hidden inputs for JavaScript -->
     <input id="episode" type="hidden" value={checkEpSelesai} />
-    <input id="anime-data-available" type="hidden" value={!isError} />
-    <input id="is-premium" type="hidden" value={isPremium} />
+      <input id="anime-data-available" type="hidden" value={String(!isError)} />
     
     <!-- Episode Selection Panel -->
     <div class="bg-base-300 rounded-lg p-3 mb-2">
       <div class="flex justify-between items-center mb-2">
         <h2 class="text-lg font-bold">Episode List</h2>
-        <div class="flex items-center">
-          <span class="mr-2 text-sm opacity-70">Episode saat ini: {checkEpSelesai}</span>
+          <div class="flex items-center gap-2">
+            <span class="text-sm opacity-70">Episode saat ini: {checkEpSelesai}</span>
           <div class="badge badge-primary">{episodes.length} episode</div>
         </div>
       </div>
       
-      <!-- Episode grid with premium indicators -->
-      <div class="episode-container bg-base-200 rounded-lg p-2 overflow-x-auto">
-        <div class="grid grid-cols-5 sm:grid-cols-7 md:grid-cols-10 lg:grid-cols-12 gap-2">
-          {episodes.map((ep) => {
-            const isLocked = !isPremium && ep !== '1';
-            return (
-              <div class="relative">
-                {isLocked && (
-                  <div class="absolute inset-0 flex items-center justify-center z-10 bg-base-300/80 rounded">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-primary" viewBox="0 0 20 20" fill="currentColor">
-                      <path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd" />
-                    </svg>
-                  </div>
-                )}
-                <a 
-                  href={isLocked ? "/subscription" : `/watch/${id}/${slug}?episode=${ep}`}
+        <!-- Episode grid -->
+        <div class="episode-container bg-base-200 rounded-lg p-2 overflow-x-auto grid grid-cols-5 gap-2">
+          {episodes.map((ep) => (
+            <a 
+              href={`/watch/${id}/${slug}?episode=${ep}`}
                   data-episode={ep} 
-                  class={`episode-btn btn btn-sm ${ep == checkEpSelesai ? 'btn-primary' : 'btn-ghost'} w-full touch-manipulation ${isLocked ? 'pointer-events-none opacity-50' : ''}`}
+              class={`btn btn-sm ${ep === checkEpSelesai ? 'btn-primary' : 'btn-ghost'}`}
                 >
                   {ep}
                 </a>
-              </div>
-            );
-          })}
-        </div>
+          ))}
       </div>
     </div>
     
-    <div class="bg-base-300 rounded pb-2">
-      {!canAccessEpisode ? (
-        <div class="aspect-video flex flex-col items-center justify-center bg-base-200 text-center p-8">
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 text-primary mb-4" viewBox="0 0 20 20" fill="currentColor">
-            <path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd" />
-          </svg>
-          <h3 class="text-2xl font-bold mb-2">Episode Terkunci</h3>
-          <p class="text-base-content/70 mb-4">Berlangganan Premium untuk menonton semua episode</p>
-          <a href="/subscription" class="btn btn-primary">Upgrade ke Premium</a>
-        </div>
-      ) : (
-        <>
-          <p
-            id="playerInfo"
-            class="aspect-video skeleton flex flex-col items-center justify-center text-center mb-2"
-          >
-            Memuat video player
-          </p>
+      <!-- Video Player -->
+      <div class="relative aspect-video bg-base-300 rounded-lg overflow-hidden">
           <div
             id="player"
             data-poster={data?.results?.image || ""}
             data-storage="player-storage"
-            data-autoplay="true"
-            data-playsinline
-            class="aspect-video hidden"
+          data-autoplay="false"
+          data-preload="true"
+          class="w-full h-full"
           >
           </div>
-          <div class="flex justify-between items-center mx-2 mt-2">
-            <div class="btn-group">
-              <button id="prevEpisode" class="btn btn-sm">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-1"><polyline points="15 18 9 12 15 6"></polyline></svg>
-                Prev
-              </button>
-              <button id="currentEp" class="btn btn-sm btn-disabled">Episode {checkEpSelesai}</button>
-              <button id="nextEpisode" class="btn btn-sm">
-                Next
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="ml-1"><polyline points="9 18 15 12 9 6"></polyline></svg>
-              </button>
+        <div id="player-info" class="absolute inset-0 flex items-center justify-center">
+          <div class="loading">Memuat video player...</div>
             </div>
-            
-            <button id="favoriteButton" class="btn btn-sm btn-outline">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                class="lucide lucide-heart heart-icon"
-              >
-                <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" />
-              </svg>
-              <span class="ml-1 favorite-text">Favorit</span>
-            </button>
           </div>
-        </>
-      )}
     </div>
     
-    <div class="p-2 rounded grid gap-2 bg-base-300">
-      <h1 class="text-center mt-2 font-bold text-lg">{data?.results?.title || "Loading..."}</h1>
-      {!isError && <Table data={data?.results?.details || []} />}
-      <span>Sinopsis: </span><p set:html={data?.results?.description || "Loading..."} />
+    <!-- Anime Details -->
+    <div class="mt-4">
+      <h1 class="text-center text-2xl font-bold mb-4">{data?.results?.title}</h1>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="bg-base-300 rounded-lg p-4">
+          <Table data={data?.results?.details || []} />
+        </div>
+        <div class="bg-base-300 rounded-lg p-4">
+          <h2 class="text-lg font-bold mb-2">Sinopsis</h2>
+          <p set:html={data?.results?.description} class="text-sm opacity-90"></p>
+        </div>
+      </div>
     </div>
   </div>
 </Layout>
 
-<!-- Client only script untuk fallback loading jika data tidak tersedia -->
 <script>
-  const dataAvailable = document.getElementById("anime-data-available")?.value === "true";
-  
-  if (!dataAvailable) {
-    // Jika data tidak tersedia (halaman tidak ada di prerender), coba load data dari client side
-    async function loadAnimeData() {
-      try {
-        // Ambil ID dan slug dari URL
-        const parts = window.location.pathname.split("/");
-        const id = parts[2];
-        const slug = parts[3];
-        const episode = new URLSearchParams(window.location.search).get("episode") || null;
-        
-        // Import fungsi API dan load data
-        const { fetchAnimeData } = await import("/src/utils/api.js");
-        const data = await fetchAnimeData(id, slug);
-        
-        if (data) {
-          // Update UI dengan data yang di-fetch
-          document.querySelector("h1.text-xl").textContent = data.results.title;
-          document.querySelector("h1.text-center").textContent = data.results.title;
-          document.querySelector("[set\\:html]").innerHTML = data.results.description;
-          
-          // Update episode list jika belum ada
-          if (!document.querySelector(".episode-btn")) {
-            const episodeContainer = document.querySelector(".grid.grid-cols-5");
-            const episodes = data.results.episode || [];
-            const currentEp = episode || episodes[episodes.length - 1];
-            
-            episodeContainer.innerHTML = episodes.map(ep => `
-              <a 
-                href="/watch/${id}/${slug}?episode=${ep}"
-                data-episode="${ep}" 
-                class="episode-btn btn btn-sm ${ep == currentEp ? 'btn-primary' : 'btn-ghost'} w-full touch-manipulation"
-              >
-                ${ep}
-              </a>
-            `).join("");
-          }
-          
-          // Enable player initialization
-          document.getElementById("anime-data-available").value = "true";
-        }
+  import { initWatchPlayer } from "~/scripts/watch";
+
+  function setupPlayer() {
+    const playerElement = document.getElementById('player');
+    const playerInfo = document.getElementById('player-info');
+    const episode = document.getElementById('episode')?.value;
+    const animeDataAvailable = document.getElementById('anime-data-available')?.value === 'true';
+
+    if (!playerElement || !playerInfo || !episode || !animeDataAvailable) {
+      if (playerInfo) {
+        playerInfo.innerHTML = `
+          <div class="text-center">
+            <p class="text-error mb-2">Data tidak tersedia</p>
+            <button onclick="window.location.reload()" class="btn btn-error btn-sm">
+              Coba lagi
+            </button>
+          </div>
+        `;
+      }
+      return;
+    }
+
+    try {
+      initWatchPlayer(playerElement, episode);
+      if (playerInfo) playerInfo.style.display = 'none';
       } catch (error) {
-        console.error("Error loading anime data:", error);
+      console.error('Error initializing player:', error);
+      if (playerInfo) {
+        playerInfo.innerHTML = `
+          <div class="text-center">
+            <p class="text-error mb-2">Gagal memuat video player</p>
+            <button onclick="window.location.reload()" class="btn btn-error btn-sm">
+              Coba lagi
+            </button>
+          </div>
+        `;
       }
     }
-    
-    loadAnimeData();
   }
+
+  // Initialize player when DOM is ready
+  document.addEventListener('DOMContentLoaded', setupPlayer);
+  document.addEventListener('astro:after-swap', setupPlayer);
 </script>
 
-<!-- Player initialization script -->
-<script>
-  import { initWatchPlayer } from "/src/scripts/watch.js";
-  document.addEventListener("astro:after-swap", initWatchPlayer);
-  
-  // Only initialize player if user can access the episode
-  const isPremium = document.getElementById('is-premium')?.value === 'true';
-  const currentEpisode = document.getElementById('episode')?.value;
-  if (isPremium || currentEpisode === '1') {
-    initWatchPlayer();
-  }
-</script>
-
-<!-- Script untuk menyimpan riwayat tontonan dan mengelola favorit -->
-<script is:inline define:vars={{ id, slug, episode, isPremium }}>
-  const animeId = id;
-  const animeSlug = slug;
-  const currentEpisode = episode || document.getElementById('episode')?.value || '1';
-  
-  // Only load modules if user can access the episode
-  if (isPremium || currentEpisode === '1') {
-    // Preload essential modules for faster UI response
-    let favoritesModule, watchHistoryModule, authModule;
-    
-    // Preload modules in the background
-    const preloadModules = async () => {
-      try {
-        [favoritesModule, watchHistoryModule, authModule] = await Promise.all([
-          import('/src/utils/favorites.js'),
-          import('/src/utils/watch-history.js'),
-          import('/src/utils/auth.js')
-        ]);
-      } catch (error) {
-        console.error("Error preloading modules:", error);
-      }
-    };
-    
-    // Start preloading immediately
-    preloadModules();
-    
-    document.addEventListener('DOMContentLoaded', async () => {
-      try {
-        // Wait for modules to load if not already loaded
-        if (!favoritesModule || !watchHistoryModule || !authModule) {
-          [favoritesModule, watchHistoryModule, authModule] = await Promise.all([
-            import('/src/utils/favorites.js'),
-            import('/src/utils/watch-history.js'),
-            import('/src/utils/auth.js')
-          ]);
-        }
-        
-        const { isFavorite, toggleFavorite } = favoritesModule;
-        const { saveToWatchHistory } = watchHistoryModule;
-        const { getCurrentUser } = authModule;
-        
-        // Get anime info
-        const animeTitle = document.querySelector('h1.text-xl')?.textContent || '';
-        const animeImage = document.querySelector('#player')?.getAttribute('data-poster') || '';
-        
-        // Save to watch history
-        saveToWatchHistory({
-          id: animeId,
-          slug: animeSlug,
-          title: animeTitle,
-          episode: currentEpisode,
-          image: animeImage
-        });
-        
-        // Handle favorite button
-        const favoriteButton = document.getElementById('favoriteButton');
-        if (favoriteButton) {
-          const favoriteIcon = favoriteButton.querySelector('svg');
-          const favoriteText = favoriteButton.querySelector('.favorite-text');
-          
-          const user = getCurrentUser();
-          
-          if (!user) {
-            favoriteButton.addEventListener('click', (e) => {
-              e.preventDefault();
-              window.location.href = '/akun';
-            });
-            favoriteText.textContent = 'Login untuk Favorit';
-            return;
-          }
-          
-          const isFav = isFavorite(animeId);
-          
-          if (isFav) {
-            favoriteIcon.setAttribute('fill', 'currentColor');
-            favoriteButton.classList.remove('btn-outline');
-            favoriteButton.classList.add('btn-pink');
-            favoriteText.textContent = 'Favorit';
-          } else {
-            favoriteIcon.setAttribute('fill', 'none');
-            favoriteButton.classList.add('btn-outline');
-            favoriteButton.classList.remove('btn-pink');
-            favoriteText.textContent = 'Favorit';
-          }
-          
-          favoriteButton.addEventListener('click', async () => {
-            const success = await toggleFavorite({
-              id: animeId,
-              slug: animeSlug,
-              title: animeTitle,
-              image: animeImage
-            });
-            
-            if (success) {
-              const newIsFav = isFavorite(animeId);
-              if (newIsFav) {
-                favoriteIcon.setAttribute('fill', 'currentColor');
-                favoriteButton.classList.remove('btn-outline');
-                favoriteButton.classList.add('btn-pink');
-                favoriteText.textContent = 'Favorit';
-              } else {
-                favoriteIcon.setAttribute('fill', 'none');
-                favoriteButton.classList.add('btn-outline');
-                favoriteButton.classList.remove('btn-pink');
-                favoriteText.textContent = 'Favorit';
-              }
-            }
-          });
-        }
-      } catch (error) {
-        console.error('Error in watch page script:', error);
-      }
-    });
-  }
-</script>
-
-<style is:inline>
-  /* Styling untuk membuat tombol episode lebih mudah disentuh pada mobile */
-  .episode-btn {
-    min-height: 2.5rem;
-    padding: 0.5rem;
-    margin-bottom: 0.25rem;
-    font-size: 0.9rem;
-    touch-action: manipulation;
-    -webkit-tap-highlight-color: rgba(0,0,0,0);
+<style>
+  .loading {
+    @apply text-center p-4;
   }
   
   .episode-container {
-    max-height: 180px;
+    grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
+    max-height: 200px;
     overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
   }
-  
-  /* Locked episode styling */
-  .episode-btn.locked {
-    opacity: 0.5;
-    cursor: not-allowed;
-  }
-  
-  /* Premium indicator animation */
-  @keyframes pulse {
-    0% { transform: scale(1); }
-    50% { transform: scale(1.1); }
-    100% { transform: scale(1); }
-  }
-  
-  .premium-indicator {
-    animation: pulse 2s infinite;
-  }
-  
-  /* Efek klik untuk tombol favorit */
-  #favoriteButton {
-    transition: background-color 0.3s, border-color 0.3s, transform 0.1s;
-  }
-  
-  #favoriteButton:active {
-    transform: scale(0.95);
-  }
-  
-  /* Pink effect when button is clicked or active */
-  #favoriteButton.btn-pink {
-    background-color: var(--primary);
-    border-color: var(--primary);
-    animation: pulse-pink 0.5s ease-in-out;
-    box-shadow: 0 0 8px rgba(255, 107, 107, 0.6);
-  }
-  
-  @keyframes pulse-pink {
-    0% { transform: scale(1); }
-    50% { transform: scale(1.1); }
-    100% { transform: scale(1); }
-  }
-  
-  #favoriteButton.btn-pink svg {
-    fill: white;
-    transform: scale(1.1);
-    transition: transform 0.3s ease;
-  }
-  
-  #favoriteButton.btn-pink:hover {
-    background-color: #ff5252;
-    border-color: #ff5252;
-    box-shadow: 0 0 12px rgba(255, 107, 107, 0.8);
-  }
-  
-  /* Style for the heart icon */
-  .heart-icon {
-    transition: transform 0.3s ease, fill 0.3s ease;
-  }
-  
-  #favoriteButton:hover .heart-icon {
-    transform: scale(1.2);
-  }
-  
-  #favoriteButton:active .heart-icon {
-    transform: scale(1.1);
-    fill: #f472b6 !important;
-    filter: drop-shadow(0 0 3px rgba(255, 192, 203, 0.8));
-  }
-  
-  /* Membuat grid lebih responsive */
+
   @media (max-width: 640px) {
-    .episode-btn {
-      min-height: 3rem; /* Lebih tinggi untuk touchscreen */
-    }
-  }
-  
-  /* Mobile adjustments */
-  @media (max-width: 768px) {
-    #favoriteButton {
-      height: 38px;
+    .episode-container {
+      grid-template-columns: repeat(auto-fill, minmax(45px, 1fr));
     }
   }
 </style>
-
-<!-- Script untuk mobile touch event yang lebih baik -->
-<script is:inline>
-  // Fix untuk perangkat touch (mobile)
-  document.addEventListener('DOMContentLoaded', () => {
-    console.log("Mobile touch fixes loaded");
-    
-    // Tambahkan perilaku khusus touch untuk tombol episode
-    const episodeBtns = document.querySelectorAll('.episode-btn');
-    
-    episodeBtns.forEach(btn => {
-      // Hapus delay sentuhan di perangkat mobile (khususnya iOS)
-      btn.addEventListener('touchstart', function() {
-        // Hindari double firing dari event
-        event.preventDefault();
-        
-        const selectedEpisode = this.getAttribute('data-episode');
-        if (!selectedEpisode) return;
-        
-        // Visual feedback untuk sentuhan
-        episodeBtns.forEach(b => {
-          b.classList.remove('btn-primary');
-          if (b !== this) b.classList.add('btn-ghost');
-        });
-        this.classList.add('btn-primary');
-        this.classList.remove('btn-ghost');
-        
-        // Arahkan ke episode yang dipilih
-        window.location.href = this.href;
-      }, {passive: false});
-    });
-  });
-</script>

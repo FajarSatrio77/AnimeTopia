@@ -1,0 +1,200 @@
+---
+export const prerender = false;
+import Layout from "~/layouts/Layout.astro";
+import { fetchData } from "~/utils/api";
+
+const { id } = Astro.params;
+// Mengubah format ID genre (contoh: "slice-of-life" menjadi "Slice of Life")
+const genreName = id
+  ?.split('-')
+  .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+  .join(' ');
+
+// Menggunakan endpoint search dengan filter genre
+const data = await fetchData(`search?genre=${id}&page=1`);
+
+// Redirect jika genre tidak valid atau tidak ada hasil
+if (!data?.results?.length) {
+  return Astro.redirect('/genre');
+}
+
+// Definisikan tipe untuk anime
+interface AnimeResult {
+  id: string;
+  slug: string;
+  title: string;
+  poster: string;
+  episode_text?: string;
+}
+---
+
+<Layout title={`Anime Genre ${genreName} - AnimeTopia`}>
+  <div class="container mx-auto px-4 py-8">
+    <div class="flex items-center gap-4 mb-8">
+      <a href="/genre" class="btn btn-ghost btn-sm">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="16"
+          height="16"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          class="lucide lucide-chevron-left"
+        >
+          <path d="m15 18-6-6 6-6"/>
+        </svg>
+        Kembali
+      </a>
+      <h1 class="text-2xl md:text-3xl font-bold">Anime Genre {genreName}</h1>
+    </div>
+
+    <div id="content" class="grid grid-cols-2 md:grid-cols-4 gap-4">
+      {
+        (data.results as AnimeResult[]).map((anime) => (
+          <div class="card aspect-[3/4] group relative select-none shadow rounded max-h-96">
+            <figure>
+              <img
+                src={anime.poster}
+                width="240"
+                height="340"
+                alt={anime.title}
+                loading="lazy"
+                class="object-cover aspect-[3/4] rounded w-full h-full"
+              />
+            </figure>
+            <div class="w-full absolute bottom-0 bg-base-100/50 group-hover:backdrop-blur-sm transition-[height] max-h-[100%] h-20 md:h-22 group-hover:h-96 flex flex-col justify-center items-center rounded">
+              <h3 class="text-sm md:text-md font-bold absolute top-2 line-clamp-2 group-hover:line-clamp-5 text-center px-2">
+                {anime.title}
+              </h3>
+              <div class="absolute bottom-1 flex flex-col gap-4">
+                <a href={`/anime/${anime.id}/${anime.slug}`} class="hidden group-hover:flex btn btn-primary btn-sm">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    class="lucide lucide-play size-4"
+                  >
+                    <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                  </svg>
+                  Tonton
+                </a>
+                <p class="text-center text-xs font-semibold">{anime.episode_text || "Movie"}</p>
+              </div>
+            </div>
+          </div>
+        ))
+      }
+    </div>
+
+    <div
+      id="loading"
+      class="skeleton aspect-[3/4] max-h-96 flex items-center justify-center hidden"
+    >
+      Loading...
+    </div>
+  </div>
+
+  <script>
+    let currentPage = 1;
+    let isLoading = false;
+    let hasMore = true;
+    const genreId = window.location.pathname.split('/').pop();
+    const contentDiv = document.getElementById('content');
+    const loadingDiv = document.getElementById('loading');
+
+    async function loadMoreAnime() {
+      if (isLoading || !hasMore) return;
+      
+      isLoading = true;
+      loadingDiv?.classList.remove('hidden');
+      
+      try {
+        currentPage++;
+        const response = await fetch(`/api/search?genre=${genreId}&page=${currentPage}`);
+        const data = await response.json();
+        
+        if (!data?.results?.length) {
+          hasMore = false;
+          return;
+        }
+
+        // Tambahkan anime baru ke grid
+        data.results.forEach((anime: any) => {
+          const animeCard = document.createElement('div');
+          animeCard.className = 'card aspect-[3/4] group relative select-none shadow rounded max-h-96';
+          animeCard.innerHTML = `
+            <figure>
+              <img
+                src="${anime.poster}"
+                width="240"
+                height="340"
+                alt="${anime.title}"
+                loading="lazy"
+                class="object-cover aspect-[3/4] rounded w-full h-full"
+              />
+            </figure>
+            <div class="w-full absolute bottom-0 bg-base-100/50 group-hover:backdrop-blur-sm transition-[height] max-h-[100%] h-20 md:h-22 group-hover:h-96 flex flex-col justify-center items-center rounded">
+              <h3 class="text-sm md:text-md font-bold absolute top-2 line-clamp-2 group-hover:line-clamp-5 text-center px-2">
+                ${anime.title}
+              </h3>
+              <div class="absolute bottom-1 flex flex-col gap-4">
+                <a href="/anime/${anime.id}/${anime.slug}" class="hidden group-hover:flex btn btn-primary btn-sm">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    class="lucide lucide-play size-4"
+                  >
+                    <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                  </svg>
+                  Tonton
+                </a>
+                <p class="text-center text-xs font-semibold">${anime.episode_text || "Movie"}</p>
+              </div>
+            </div>
+          `;
+          contentDiv?.appendChild(animeCard);
+        });
+      } catch (error) {
+        console.error('Error loading more anime:', error);
+      } finally {
+        isLoading = false;
+        loadingDiv?.classList.add('hidden');
+      }
+    }
+
+    // Infinite scroll observer
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          loadMoreAnime();
+        }
+      });
+    }, { rootMargin: '100px' });
+
+    // Observe loading div
+    if (loadingDiv) {
+      observer.observe(loadingDiv);
+    }
+
+    // Cleanup on page change
+    document.addEventListener('astro:before-swap', () => {
+      observer.disconnect();
+    });
+  </script>
+</Layout> 

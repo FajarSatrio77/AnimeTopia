@@ -7,29 +7,53 @@ import { doc, setDoc, getDoc, collection, query, where, getDocs } from "firebase
 export async function signUpUser(email, password, name) {
   try {
     // 1. Daftar ke Firebase Auth terlebih dahulu
-    console.log("Mencoba mendaftar ke Firebase...");
+    console.log("Mencoba mendaftar ke Firebase Auth...");
     const UserCredential = await createUserWithEmailAndPassword(auth, email, password);
     const user = UserCredential.user;
 
-    console.log("Berhasil mendaftar di Firebase, menyimpan data ke Firestore...");
-    await setDoc(doc(db, "users", user.uid), {
+    // 2. Menyimpan data user ke Firestore
+    console.log("Menyimpan data user ke Firestore...");
+    const userData = {
       nama: name,
       email,
       password,
-      createdAt: new Date(),
-    });
+      createdAt: new Date().toISOString(),
+      lastLoginAt: new Date().toISOString(),
+      isActive: true
+    };
 
-    return user;
+    // 3. Simpan ke collection users dengan ID dari auth
+    await setDoc(doc(db, "users", user.uid), userData);
+    console.log("Data berhasil disimpan ke Firestore");
+
+    // 4. Simpan ke localStorage
+    localStorage.setItem('animetopia_user', JSON.stringify({
+      ...userData,
+      uid: user.uid
+    }));
+
+    return {
+      success: true,
+      user: {
+        ...userData,
+        uid: user.uid
+      },
+      message: "Pendaftaran berhasil"
+    };
   } catch (error) {
-    console.error("Error saat pendaftaran:", error);
+    console.error("Error detail:", error);
+    
     if (error.code === 'auth/email-already-in-use') {
       throw new Error('Email sudah terdaftar. Silakan gunakan email lain.');
     } else if (error.code === 'auth/invalid-email') {
       throw new Error('Format email tidak valid.');
     } else if (error.code === 'auth/weak-password') {
       throw new Error('Password terlalu lemah. Minimal 6 karakter.');
+    } else if (error.code?.includes('firestore')) {
+      throw new Error('Gagal menyimpan data ke database. Silakan coba lagi.');
     }
-    throw new Error('Terjadi kesalahan saat pendaftaran. Silakan coba lagi.');
+    
+    throw new Error('Terjadi kesalahan saat pendaftaran: ' + error.message);
   }
 }
 
@@ -391,4 +415,9 @@ export function removeFromFavorites(animeId) {
 export function isFavorite(animeId) {
   const favorites = getUserFavorites();
   return favorites.some(fav => fav.id === animeId);
+} 
+
+// Fungsi untuk mengecek apakah user adalah admin
+export function isAdmin(email) {
+  return email === 'admin@gmail.com';
 } 
