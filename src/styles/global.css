@@ -1,0 +1,42 @@
+@import "tailwindcss";
+@plugin "daisyui";
+
+@variant hover (&:hover);
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  background-color: #1A1A1A;
+  color: #ffffff;
+}
+
+/* Adjust card and other component backgrounds */
+.card {
+  background-color: #242424;
+}
+
+.bg-base-100 {
+  background-color: #242424 !important;
+}
+
+.bg-base-200 {
+  background-color: #2a2a2a !important;
+}
+
+/* Navbar styles */
+.navbar {
+  transition: all 0.3s ease-in-out;
+  background-color: #2D2D2D !important;
+}
+
+.navbar.scrolled {
+  background-color: rgba(45, 45, 45, 0.8) !important;
+  backdrop-filter: blur(8px);
+}
+
+/* Adjust dropdown menus in navbar */
+.dropdown-content {
+  background-color: #2D2D2D !important;
+}

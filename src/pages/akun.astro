@@ -1,0 +1,666 @@
+---
+import Layout from "~/layouts/Layout.astro";
+---
+
+<Layout title="Login - AnimeTopia" hideHeader={true}>
+  <!-- Custom header without search -->
+  <div class="sticky top-0 left-0 right-0 navbar bg-base-100/90 backdrop-blur shadow-sm z-10 rounded-b-lg">
+    <div class="navbar-start">
+      <div class="dropdown">
+        <!-- Empty dropdown for spacing -->
+      </div>
+    </div>
+    <div class="navbar-center">
+      <a href="/" class="btn btn-ghost text-xl">AnimeTopia</a>
+    </div>
+    <div class="navbar-end">
+      <!-- Empty end for spacing -->
+    </div>
+  </div>
+
+  <!-- Toast notifications container -->
+  <div id="toast-container" class="toast toast-top toast-end z-50"></div>
+
+  <div class="anime-login-container min-h-screen py-12 px-4 relative">
+    
+    <!-- Main container -->
+    <div class="container mx-auto max-w-md relative z-10">
+      <div class="main-container">
+        <!-- Anime character decoration -->
+        <div class="anime-character"></div>
+        
+        <!-- User Profile Card (shown when logged in) -->
+        <div id="profile-card" class="card-3d-wrapper hidden">
+          <div class="card-front">
+            <div class="center-wrap">
+              <div class="card-header text-center mb-6">
+                <h2 class="text-2xl font-bold mb-1 text-white">Profil Pengguna</h2>
+                <p class="text-sm text-indigo-200/70">Anda telah login</p>
+              </div>
+              
+              <div class="user-avatar mb-4">
+                <div class="avatar-circle">
+                  <span id="profile-initial" class="avatar-text">U</span>
+                </div>
+              </div>
+              
+              <div class="user-info text-center mb-8">
+                <h3 id="profile-display-name" class="text-xl font-semibold text-white mb-1">Username</h3>
+                <p id="profile-email" class="text-sm text-indigo-200/70">user@example.com</p>
+                
+                <div class="stat bg-indigo-800/30 p-3 rounded-lg text-center mt-4">
+                  <p class="text-xs text-indigo-200/70">Ditandai</p>
+                  <p id="favorites-count" class="text-xl font-bold text-white">0</p>
+                </div>
+              </div>
+              
+              <button id="logout-button" class="btn-logout w-full">
+                LOGOUT
+              </button>
+              
+              <div class="links mt-6 text-center">
+                <a href="/" class="text-xs text-indigo-200/70 hover:text-white transition-colors">Kembali ke Beranda</a>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Form Cards Container with perspective effect -->
+        <div id="forms-container" class="forms-container perspective">
+          <!-- Login Card -->
+          <div id="login-card" class="card-3d-wrapper">
+            <div class="card-front">
+              <div class="center-wrap">
+                <div class="card-header text-center mb-4">
+                  <h2 class="text-2xl font-bold mb-1 text-white">Welcome Back</h2>
+                  <p class="text-sm text-pink-200/70">Login to your anime journey</p>
+                </div>
+                
+                <form id="login-form" class="space-y-5">
+                  <div class="form-group">
+                    <input type="email" id="email" name="email" 
+                      class="form-control" placeholder="Email" required>
+                    <i class="input-icon uil uil-at"></i>
+                  </div>
+                  
+                  <div class="form-group">
+                    <input type="password" id="password" name="password" 
+                      class="form-control" placeholder="Password" required>
+                    <i class="input-icon uil uil-lock-alt"></i>
+                  </div>
+                  
+                  <div class="text-right">
+                    <a href="#" class="text-xs text-pink-300 hover:text-white transition-colors">Forgot Password?</a>
+                  </div>
+                  
+                  <div class="hidden bg-red-900/50 text-red-200 text-sm p-3 rounded-lg border border-red-500/50 mt-4" id="login-error">
+                    <div class="flex items-center">
+                      <svg class="h-5 w-5 mr-2 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+                      </svg>
+                      <span>Username atau password salah</span>
+                    </div>
+                  </div>
+                  
+                  <button type="submit" id="login-button" class="btn-login">
+                    LOGIN
+                  </button>
+                  
+                  <input type="hidden" id="redirect-url" name="redirect">
+                  
+                  <div class="social-login">
+                    <p class="text-center text-xs text-white/50 mb-3">Or sign in with</p>
+                    <div class="social-icons">
+                      <a href="#" class="social-icon">
+                        <i class="fab fa-facebook-f"></i>
+                      </a>
+                      <a href="#" class="social-icon">
+                        <i class="fab fa-twitter"></i>
+                      </a>
+                      <a href="#" class="social-icon">
+                        <i class="fab fa-google"></i>
+                      </a>
+                    </div>
+                  </div>
+                  
+                  <p class="text-center mt-6 text-white/70 text-sm">
+                    Not a member? 
+                    <a href="#" id="show-register" class="text-pink-400 hover:text-pink-300">Sign up now</a>
+                  </p>
+                </form>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Register Card -->
+          <div id="register-card" class="card-3d-wrapper hidden">
+            <div class="card-front">
+              <div class="center-wrap">
+                <div class="card-header text-center mb-4">
+                  <h2 class="text-2xl font-bold mb-1 text-white">Join AnimeTopia</h2>
+                  <p class="text-sm text-indigo-200/70">Create your account</p>
+                </div>
+                
+                <form id="register-form" class="space-y-5">
+                  <div class="form-group">
+                    <input type="text" id="reg-username" name="username" 
+                      class="form-control" placeholder="Username" required>
+                    <i class="input-icon uil uil-user"></i>
+                  </div>
+                  
+                  <div class="form-group">
+                    <input type="email" id="reg-email" name="email" 
+                      class="form-control" placeholder="Email" required>
+                    <i class="input-icon uil uil-at"></i>
+                  </div>
+                  
+                  <div class="form-group">
+                    <input type="password" id="reg-password" name="password" 
+                      class="form-control" placeholder="Password" required>
+                    <i class="input-icon uil uil-lock-alt"></i>
+                  </div>
+                  
+                  <div class="form-group">
+                    <input type="password" id="reg-confirm-password" name="confirm_password" 
+                      class="form-control" placeholder="Confirm Password" required>
+                    <i class="input-icon uil uil-lock-access"></i>
+                  </div>
+                  
+                  <div class="hidden bg-red-900/50 text-red-200 text-sm p-3 rounded-lg border border-red-500/50 mt-4" id="register-error">
+                    <div class="flex items-center">
+                      <svg class="h-5 w-5 mr-2 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+                      </svg>
+                      <span>Username atau email sudah digunakan</span>
+                    </div>
+                  </div>
+                  
+                  <div class="flex items-center space-x-2 ml-1">
+                    <input id="remember-me" name="remember-me" type="checkbox" 
+                      class="w-4 h-4 text-indigo-500 bg-transparent border-2 border-white/30 rounded focus:ring-0">
+                    <label for="remember-me" class="text-sm text-white/70">Remember me</label>
+                  </div>
+                  
+                  <button type="submit" id="register-button" class="btn-register">
+                    SIGN UP
+                  </button>
+                  
+                  <p class="text-center mt-6 text-white/70 text-sm">
+                    Already a member? 
+                    <a href="#" id="show-login" class="text-indigo-400 hover:text-indigo-300">Sign in</a>
+                  </p>
+                </form>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</Layout>
+
+<script>
+  import { getUserFavorites } from "../utils/favorites.js";
+  
+  // Check if user is logged in
+  function isAuthenticated() {
+    try {
+      const userData = localStorage.getItem('animetopia_user');
+      if (!userData) return false;
+      
+      // Parse the data to ensure it's valid
+      const user = JSON.parse(userData);
+      return !!user && !!user.uid;
+    } catch (error) {
+      console.error('Error checking authentication status:', error);
+      return false;
+    }
+  }
+  
+  // Get current user from localStorage
+  function getCurrentUser() {
+    try {
+      const userData = localStorage.getItem('animetopia_user');
+      if (!userData) return null;
+      return JSON.parse(userData);
+    } catch (error) {
+      console.error('Error getting user data:', error);
+      return null;
+    }
+  }
+
+  // Handle login form submission
+  function handleLogin(event) {
+    event.preventDefault();
+    
+    const email = document.getElementById('email')?.value;
+    const password = document.getElementById('password')?.value;
+    const errorElement = document.getElementById('login-error');
+    
+    if (!email || !password) {
+      if (errorElement) {
+        errorElement.classList.remove('hidden');
+        errorElement.querySelector('span').textContent = 'Email dan password harus diisi';
+      }
+      return;
+    }
+    
+    // Simulasi login sederhana (untuk demo)
+    const mockUser = {
+      uid: '1',
+      email: email,
+      displayName: email.split('@')[0],
+      createdAt: new Date().toISOString()
+    };
+    
+    // Simpan data user ke localStorage
+    localStorage.setItem('animetopia_user', JSON.stringify(mockUser));
+    
+    // Update UI
+    updateProfileUI();
+    
+    // Redirect ke halaman sebelumnya jika ada
+    const redirectUrl = document.getElementById('redirect-url')?.value;
+    if (redirectUrl) {
+      window.location.href = redirectUrl;
+    }
+  }
+
+  // Handle register form submission
+  function handleRegister(event) {
+    event.preventDefault();
+    
+    const username = document.getElementById('reg-username')?.value;
+    const email = document.getElementById('reg-email')?.value;
+    const password = document.getElementById('reg-password')?.value;
+    const confirmPassword = document.getElementById('reg-confirm-password')?.value;
+    const errorElement = document.getElementById('register-error');
+    
+    if (!username || !email || !password || !confirmPassword) {
+      if (errorElement) {
+        errorElement.classList.remove('hidden');
+        errorElement.querySelector('span').textContent = 'Semua field harus diisi';
+      }
+      return;
+    }
+    
+    if (password !== confirmPassword) {
+      if (errorElement) {
+        errorElement.classList.remove('hidden');
+        errorElement.querySelector('span').textContent = 'Password tidak cocok';
+      }
+      return;
+    }
+    
+    // Simulasi registrasi sederhana (untuk demo)
+    const mockUser = {
+      uid: '1',
+      email: email,
+      displayName: username,
+      createdAt: new Date().toISOString()
+    };
+    
+    // Simpan data user ke localStorage
+    localStorage.setItem('animetopia_user', JSON.stringify(mockUser));
+    
+    // Update UI
+    updateProfileUI();
+  }
+
+  // Update profile UI
+  function updateProfileUI() {
+    const user = getCurrentUser();
+    const profileCard = document.getElementById('profile-card');
+    const formsContainer = document.getElementById('forms-container');
+    
+    if (user && profileCard && formsContainer) {
+      // Update profile information
+      const profileInitial = document.getElementById('profile-initial');
+      const profileDisplayName = document.getElementById('profile-display-name');
+      const profileEmail = document.getElementById('profile-email');
+      const favoritesCount = document.getElementById('favorites-count');
+      
+      if (profileInitial) {
+        profileInitial.textContent = user.displayName?.[0]?.toUpperCase() || 'U';
+      }
+      if (profileDisplayName) {
+        profileDisplayName.textContent = user.displayName || 'User';
+      }
+      if (profileEmail) {
+        profileEmail.textContent = user.email || '';
+      }
+      
+      // Update favorites count
+      const favorites = getUserFavorites();
+      if (favoritesCount) {
+        favoritesCount.textContent = favorites.length.toString();
+      }
+      
+      // Show profile card, hide forms
+      profileCard.classList.remove('hidden');
+      formsContainer.classList.add('hidden');
+    } else if (profileCard && formsContainer) {
+      // Show forms, hide profile card
+      profileCard.classList.add('hidden');
+      formsContainer.classList.remove('hidden');
+    }
+  }
+
+  // Initialize page
+  function initPage() {
+    // Check auth status and update UI
+    updateProfileUI();
+    
+    // Add event listeners
+    const loginForm = document.getElementById('login-form');
+    const registerForm = document.getElementById('register-form');
+    const logoutButton = document.getElementById('logout-button');
+    const showRegisterLink = document.getElementById('show-register');
+    const showLoginLink = document.getElementById('show-login');
+    
+    if (loginForm) {
+      loginForm.addEventListener('submit', handleLogin);
+    }
+    
+    if (registerForm) {
+      registerForm.addEventListener('submit', handleRegister);
+    }
+    
+    if (logoutButton) {
+      logoutButton.addEventListener('click', () => {
+        localStorage.removeItem('animetopia_user');
+        updateProfileUI();
+      });
+    }
+    
+    if (showRegisterLink) {
+      showRegisterLink.addEventListener('click', (e) => {
+        e.preventDefault();
+        document.getElementById('login-card')?.classList.add('hidden');
+        document.getElementById('register-card')?.classList.remove('hidden');
+      });
+    }
+    
+    if (showLoginLink) {
+      showLoginLink.addEventListener('click', (e) => {
+        e.preventDefault();
+        document.getElementById('register-card')?.classList.add('hidden');
+        document.getElementById('login-card')?.classList.remove('hidden');
+      });
+    }
+    
+    // Listen for storage changes (in case user logs in/out in another tab)
+    window.addEventListener('storage', (e) => {
+      if (e.key === 'animetopia_user') {
+        updateProfileUI();
+      }
+    });
+  }
+
+  // Initialize when DOM is ready
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", initPage);
+  } else {
+    initPage();
+  }
+
+  // Re-initialize on navigation
+  document.addEventListener("astro:after-swap", initPage);
+</script>
+
+<style is:global>
+  .anime-login-container {
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+    background-size: cover;
+    background-position: center;
+    overflow: hidden;
+    position: relative;
+  }
+
+  .anime-login-container::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: url('/background.svg') center/cover;
+    opacity: 0.1;
+    animation: backgroundFloat 20s ease-in-out infinite;
+  }
+
+  @keyframes backgroundFloat {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+  }
+  
+  .main-container {
+    position: relative;
+    overflow: hidden;
+    padding: 1.5rem;
+    min-height: 80vh;
+  }
+  
+  .card-3d-wrapper {
+    position: relative;
+    width: 100%;
+    min-height: 500px;
+  }
+  
+  .card-front {
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 1rem;
+    padding: 2rem;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+  }
+  
+  .card-front:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+  }
+  
+  .center-wrap {
+    padding: 1rem;
+  }
+  
+  .form-group {
+    position: relative;
+    margin-bottom: 1.5rem;
+  }
+  
+  .form-control {
+    width: 100%;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    outline: none;
+    border-radius: 0.5rem;
+    padding: 0.75rem 1rem;
+    padding-left: 2.5rem;
+    color: white;
+    transition: all 0.3s;
+  }
+  
+  .form-control:focus {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 255, 255, 0.2);
+    box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.1);
+  }
+  
+  .input-icon {
+    position: absolute;
+    left: 1rem;
+    top: 0.85rem;
+    color: rgba(255, 255, 255, 0.5);
+    transition: color 0.3s;
+  }
+
+  .form-control:focus + .input-icon {
+    color: rgba(255, 255, 255, 0.8);
+  }
+  
+  /* Buttons */
+  .btn-login, .btn-register, .btn-logout {
+    width: 100%;
+    border: none;
+    border-radius: 0.5rem;
+    padding: 0.75rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    letter-spacing: 1px;
+    transition: all 0.3s;
+    cursor: pointer;
+    color: white;
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .btn-login {
+    background: linear-gradient(45deg, #FF5757, #F54EA2);
+    box-shadow: 0 4px 15px rgba(245, 78, 162, 0.3);
+  }
+  
+  .btn-register {
+    background: linear-gradient(45deg, #4A9FFF, #7C4DFF);
+    box-shadow: 0 4px 15px rgba(124, 77, 255, 0.3);
+  }
+  
+  .btn-logout {
+    background: linear-gradient(45deg, #434343, #656565);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  }
+  
+  .btn-login:hover, .btn-register:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 20px rgba(245, 78, 162, 0.4);
+  }
+  
+  .btn-login:active, .btn-register:active {
+    transform: translateY(0);
+  }
+
+  .btn-login::after, .btn-register::after {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: linear-gradient(
+      to right,
+      rgba(255, 255, 255, 0) 0%,
+      rgba(255, 255, 255, 0.1) 50%,
+      rgba(255, 255, 255, 0) 100%
+    );
+    transform: rotate(45deg);
+    transition: all 0.3s;
+    opacity: 0;
+  }
+
+  .btn-login:hover::after, .btn-register:hover::after {
+    opacity: 1;
+    animation: shine 1.5s infinite;
+  }
+
+  @keyframes shine {
+    0% { transform: translateX(-100%) rotate(45deg); }
+    100% { transform: translateX(100%) rotate(45deg); }
+  }
+  
+  /* Social icons */
+  .social-login {
+    margin-top: 1.5rem;
+  }
+  
+  .social-icons {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 1rem;
+  }
+  
+  .social-icon {
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: white;
+    transition: all 0.3s;
+  }
+  
+  .social-icon:hover {
+    background: rgba(255, 255, 255, 0.1);
+    transform: translateY(-3px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  }
+  
+  /* Profile styles */
+  .user-avatar {
+    display: flex;
+    justify-content: center;
+  }
+  
+  .avatar-circle {
+    width: 100px;
+    height: 100px;
+    background: linear-gradient(45deg, rgba(74, 159, 255, 0.8), rgba(124, 77, 255, 0.8));
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: white;
+    box-shadow: 0 4px 15px rgba(124, 77, 255, 0.4);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .avatar-circle::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: linear-gradient(
+      45deg,
+      transparent,
+      rgba(255, 255, 255, 0.1),
+      transparent
+    );
+    transform: rotate(45deg);
+    animation: avatarShine 3s infinite;
+  }
+
+  @keyframes avatarShine {
+    0% { transform: translateX(-100%) rotate(45deg); }
+    100% { transform: translateX(100%) rotate(45deg); }
+  }
+  
+  .avatar-text {
+    font-size: 3rem;
+    font-weight: bold;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  }
+
+  /* Links */
+  a {
+    transition: all 0.3s;
+  }
+
+  a:hover {
+    text-shadow: 0 0 8px rgba(255, 255, 255, 0.5);
+  }
+
+  /* Error messages */
+  #login-error, #register-error {
+    background: rgba(220, 38, 38, 0.1);
+    border: 1px solid rgba(220, 38, 38, 0.2);
+    backdrop-filter: blur(4px);
+  }
+</style> 

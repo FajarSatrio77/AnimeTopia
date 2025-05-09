@@ -1,0 +1,190 @@
+---
+export const prerender = false;
+import Layout from "~/layouts/Layout.astro";
+import Card from "~/components/ui/Card.astro";
+import { fetchData } from "~/utils/api";
+
+// Fetch initial data with smaller limit
+const data = await fetchData("top-rated", { limit: 12 });
+
+// Generate skeleton items
+const skeletonCount = 12;
+---
+
+<Layout title="Anime Rating Tertinggi - AnimeTopia">
+  <div class="py-4" transition:animate="slide">
+    <h1 class="text-2xl font-bold mb-6 text-center bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+      Anime Rating Tertinggi
+    </h1>
+    
+    <div id="content" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-2 md:gap-4">
+      <Card data={data?.results || []} loadingNumber={12} />
+      
+      {/* Skeleton loader */}
+      {Array(skeletonCount).fill(0).map((_, i) => (
+        <div class="skeleton-card aspect-[3/4] animate-pulse bg-base-300 rounded-lg">
+          <div class="w-full h-full flex items-center justify-center">
+            <div class="loading-spinner"></div>
+          </div>
+        </div>
+      ))}
+    </div>
+  </div>
+</Layout>
+
+<style>
+  .loading-spinner {
+    width: 30px;
+    height: 30px;
+    border: 3px solid #ffffff33;
+    border-top-color: var(--primary);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+  }
+
+  @keyframes spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  .skeleton-card {
+    opacity: 0;
+    animation: fadeIn 0.3s ease-in-out forwards;
+  }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 0.7;
+      transform: translateY(0);
+    }
+  }
+
+  /* Stagger animation for skeleton cards */
+  .skeleton-card {
+    animation-delay: calc(var(--index) * 0.1s);
+  }
+
+  #content {
+    animation: fadeIn 0.3s ease-out;
+  }
+</style>
+
+<script>
+  import { initInfiniteScroll } from "/src/scripts/infinite-scroll.js";
+
+  let isLoading = false;
+  let page = 1;
+
+  function setupInfiniteScroll() {
+    if (window.__infiniteScrollObserver) {
+      window.__infiniteScrollObserver.disconnect();
+    }
+
+    const content = document.getElementById('content');
+    const skeletons = document.querySelectorAll('.skeleton-card');
+
+    // Hide initial skeletons when content is loaded
+    if (content && content.children.length > 0) {
+      skeletons.forEach((skeleton) => {
+        skeleton.style.display = 'none';
+      });
+    }
+
+    const observer = new IntersectionObserver(async (entries) => {
+      const target = entries[0];
+      if (target.isIntersecting && !isLoading) {
+        isLoading = true;
+        page++;
+
+        try {
+          const response = await fetch(`/api/anime/top?page=${page}&limit=12`);
+          const newData = await response.json();
+
+          if (newData?.results?.length) {
+            // Show some skeletons before new content loads
+            skeletons.forEach((skeleton, index) => {
+              if (index < 6) {
+                skeleton.style.display = 'block';
+                skeleton.style.setProperty('--index', index);
+              }
+            });
+
+            // Add small delay to show loading state
+            await new Promise(resolve => setTimeout(resolve, 300));
+
+            // Add new content
+            const cardContainer = document.createElement('div');
+            cardContainer.innerHTML = generateCardHTML(newData.results);
+            content.insertBefore(cardContainer, content.lastElementChild);
+
+            // Hide skeletons again
+            skeletons.forEach(skeleton => {
+              skeleton.style.display = 'none';
+            });
+          }
+        } catch (error) {
+          console.error('Error loading more content:', error);
+        } finally {
+          isLoading = false;
+        }
+      }
+    }, {
+      rootMargin: '100px'
+    });
+
+    // Observe the last skeleton
+    const lastSkeleton = skeletons[skeletons.length - 1];
+    if (lastSkeleton) {
+      observer.observe(lastSkeleton);
+    }
+
+    window.__infiniteScrollObserver = observer;
+  }
+
+  function generateCardHTML(items) {
+    return items.map(item => `
+      <div class="card aspect-[3/4] group relative select-none shadow rounded max-h-96">
+        <figure>
+          <img
+            src="${item.image}"
+            width="240"
+            height="340"
+            alt="${item.title}"
+            loading="lazy"
+            class="card-image object-cover aspect-[3/4] rounded w-full h-full"
+          />
+        </figure>
+        <div class="w-full absolute bottom-0 bg-base-100/50 backdrop-blur-sm transition-[height] max-h-[100%] h-20 md:h-22 group-hover:h-96 flex flex-col justify-center items-center rounded">
+          <h3 class="text-sm md:text-md font-bold absolute top-2 line-clamp-2 group-hover:line-clamp-5 text-center">
+            ${item.title}
+          </h3>
+          <div class="absolute bottom-1 flex flex-col gap-4">
+            <a href="/watch/${item.id}" class="hidden group-hover:flex btn btn-primary btn-sm">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-play size-4">
+                <polygon points="5 3 19 12 5 21 5 3"></polygon>
+              </svg>
+              Tonton
+            </a>
+            <p class="text-center text-xs font-semibold">${item.episode || item.type || item.status}</p>
+          </div>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  // Setup on initial load
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", setupInfiniteScroll);
+  } else {
+    setupInfiniteScroll();
+  }
+
+  // Setup on navigation
+  window.addEventListener("pageshow", setupInfiniteScroll);
+  document.addEventListener("astro:after-swap", setupInfiniteScroll);
+</script> 
