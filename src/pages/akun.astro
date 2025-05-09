@@ -66,7 +66,11 @@ import Layout from "~/layouts/Layout.astro";
         </div>
         
         <!-- Form Cards Container with perspective effect -->
+<<<<<<< HEAD
         <div id="forms-container" class="forms-container perspective">
+=======
+        <div class="forms-container perspective">
+>>>>>>> be07b8cf48f62cfa635d431149ccc7ab95653c51
           <!-- Login Card -->
           <div id="login-card" class="card-3d-wrapper">
             <div class="card-front">
@@ -87,6 +91,7 @@ import Layout from "~/layouts/Layout.astro";
                     <input type="password" id="password" name="password" 
                       class="form-control" placeholder="Password" required>
                     <i class="input-icon uil uil-lock-alt"></i>
+<<<<<<< HEAD
                   </div>
                   
                   <div class="text-right">
@@ -105,6 +110,26 @@ import Layout from "~/layouts/Layout.astro";
                   <button type="submit" id="login-button" class="btn-login">
                     LOGIN
                   </button>
+=======
+            </div>
+            
+            <div class="text-right">
+                    <a href="#" class="text-xs text-pink-300 hover:text-white transition-colors">Forgot Password?</a>
+            </div>
+            
+                  <div class="hidden bg-red-900/50 text-red-200 text-sm p-3 rounded-lg border border-red-500/50 mt-4" id="login-error">
+                    <div class="flex items-center">
+                <svg class="h-5 w-5 mr-2 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+                </svg>
+                <span>Username atau password salah</span>
+              </div>
+            </div>
+            
+                  <button type="submit" id="login-button" class="btn-login">
+                LOGIN
+              </button>
+>>>>>>> be07b8cf48f62cfa635d431149ccc7ab95653c51
                   
                   <input type="hidden" id="redirect-url" name="redirect">
                   
@@ -128,42 +153,71 @@ import Layout from "~/layouts/Layout.astro";
                     <a href="#" id="show-register" class="text-pink-400 hover:text-pink-300">Sign up now</a>
                   </p>
                 </form>
+<<<<<<< HEAD
               </div>
             </div>
           </div>
           
           <!-- Register Card -->
+=======
+          </div>
+        </div>
+      </div>
+      
+      <!-- Register Card -->
+>>>>>>> be07b8cf48f62cfa635d431149ccc7ab95653c51
           <div id="register-card" class="card-3d-wrapper hidden">
             <div class="card-front">
               <div class="center-wrap">
                 <div class="card-header text-center mb-4">
                   <h2 class="text-2xl font-bold mb-1 text-white">Join AnimeTopia</h2>
                   <p class="text-sm text-indigo-200/70">Create your account</p>
+<<<<<<< HEAD
                 </div>
                 
+=======
+        </div>
+        
+>>>>>>> be07b8cf48f62cfa635d431149ccc7ab95653c51
                 <form id="register-form" class="space-y-5">
                   <div class="form-group">
                     <input type="text" id="reg-username" name="username" 
                       class="form-control" placeholder="Username" required>
                     <i class="input-icon uil uil-user"></i>
+<<<<<<< HEAD
                   </div>
                   
+=======
+            </div>
+            
+>>>>>>> be07b8cf48f62cfa635d431149ccc7ab95653c51
                   <div class="form-group">
                     <input type="email" id="reg-email" name="email" 
                       class="form-control" placeholder="Email" required>
                     <i class="input-icon uil uil-at"></i>
+<<<<<<< HEAD
                   </div>
                   
+=======
+            </div>
+            
+>>>>>>> be07b8cf48f62cfa635d431149ccc7ab95653c51
                   <div class="form-group">
                     <input type="password" id="reg-password" name="password" 
                       class="form-control" placeholder="Password" required>
                     <i class="input-icon uil uil-lock-alt"></i>
+<<<<<<< HEAD
                   </div>
                   
+=======
+            </div>
+            
+>>>>>>> be07b8cf48f62cfa635d431149ccc7ab95653c51
                   <div class="form-group">
                     <input type="password" id="reg-confirm-password" name="confirm_password" 
                       class="form-control" placeholder="Confirm Password" required>
                     <i class="input-icon uil uil-lock-access"></i>
+<<<<<<< HEAD
                   </div>
                   
                   <div class="hidden bg-red-900/50 text-red-200 text-sm p-3 rounded-lg border border-red-500/50 mt-4" id="register-error">
@@ -175,15 +229,36 @@ import Layout from "~/layouts/Layout.astro";
                     </div>
                   </div>
                   
+=======
+            </div>
+            
+                  <div class="hidden bg-red-900/50 text-red-200 text-sm p-3 rounded-lg border border-red-500/50 mt-4" id="register-error">
+                    <div class="flex items-center">
+                <svg class="h-5 w-5 mr-2 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+                </svg>
+                <span>Username atau email sudah digunakan</span>
+              </div>
+            </div>
+            
+>>>>>>> be07b8cf48f62cfa635d431149ccc7ab95653c51
                   <div class="flex items-center space-x-2 ml-1">
                     <input id="remember-me" name="remember-me" type="checkbox" 
                       class="w-4 h-4 text-indigo-500 bg-transparent border-2 border-white/30 rounded focus:ring-0">
                     <label for="remember-me" class="text-sm text-white/70">Remember me</label>
+<<<<<<< HEAD
                   </div>
                   
                   <button type="submit" id="register-button" class="btn-register">
                     SIGN UP
                   </button>
+=======
+            </div>
+            
+                  <button type="submit" id="register-button" class="btn-register">
+                    SIGN UP
+              </button>
+>>>>>>> be07b8cf48f62cfa635d431149ccc7ab95653c51
                   
                   <p class="text-center mt-6 text-white/70 text-sm">
                     Already a member? 
@@ -199,6 +274,7 @@ import Layout from "~/layouts/Layout.astro";
   </div>
 </Layout>
 
+<<<<<<< HEAD
 <script>
   import { getUserFavorites } from "../utils/favorites.js";
   
@@ -432,6 +508,19 @@ import Layout from "~/layouts/Layout.astro";
   @keyframes backgroundFloat {
     0%, 100% { transform: scale(1); }
     50% { transform: scale(1.1); }
+=======
+<!-- Include account page script -->
+<script type="module" src="/src/scripts/account-page.js"></script>
+
+<style is:global>
+  .anime-login-container {
+    background-color: hsl(var(--b1));
+    background-image: linear-gradient(45deg, rgba(76, 0, 112, 0.3), rgba(19, 18, 49, 0.4)), 
+                      url('/background.svg');
+    background-size: cover;
+    background-position: center;
+    overflow: hidden;
+>>>>>>> be07b8cf48f62cfa635d431149ccc7ab95653c51
   }
   
   .main-container {
@@ -448,6 +537,7 @@ import Layout from "~/layouts/Layout.astro";
   }
   
   .card-front {
+<<<<<<< HEAD
     background: rgba(255, 255, 255, 0.05);
     backdrop-filter: blur(10px);
     border: 1px solid rgba(255, 255, 255, 0.1);
@@ -460,6 +550,13 @@ import Layout from "~/layouts/Layout.astro";
   .card-front:hover {
     transform: translateY(-5px);
     box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+=======
+    background-color: rgba(var(--primary-rgb), 0.1);
+    backdrop-filter: blur(10px);
+    border-radius: 1rem;
+    padding: 2rem;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+>>>>>>> be07b8cf48f62cfa635d431149ccc7ab95653c51
   }
   
   .center-wrap {
@@ -473,8 +570,13 @@ import Layout from "~/layouts/Layout.astro";
   
   .form-control {
     width: 100%;
+<<<<<<< HEAD
     background: rgba(255, 255, 255, 0.05);
     border: 1px solid rgba(255, 255, 255, 0.1);
+=======
+    background-color: rgba(255, 255, 255, 0.08);
+    border: none;
+>>>>>>> be07b8cf48f62cfa635d431149ccc7ab95653c51
     outline: none;
     border-radius: 0.5rem;
     padding: 0.75rem 1rem;
@@ -484,9 +586,14 @@ import Layout from "~/layouts/Layout.astro";
   }
   
   .form-control:focus {
+<<<<<<< HEAD
     background: rgba(255, 255, 255, 0.08);
     border-color: rgba(255, 255, 255, 0.2);
     box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.1);
+=======
+    background-color: rgba(255, 255, 255, 0.12);
+    box-shadow: 0 0 0 2px rgba(var(--primary-rgb), 0.5);
+>>>>>>> be07b8cf48f62cfa635d431149ccc7ab95653c51
   }
   
   .input-icon {
@@ -494,11 +601,14 @@ import Layout from "~/layouts/Layout.astro";
     left: 1rem;
     top: 0.85rem;
     color: rgba(255, 255, 255, 0.5);
+<<<<<<< HEAD
     transition: color 0.3s;
   }
 
   .form-control:focus + .input-icon {
     color: rgba(255, 255, 255, 0.8);
+=======
+>>>>>>> be07b8cf48f62cfa635d431149ccc7ab95653c51
   }
   
   /* Buttons */
@@ -513,8 +623,11 @@ import Layout from "~/layouts/Layout.astro";
     transition: all 0.3s;
     cursor: pointer;
     color: white;
+<<<<<<< HEAD
     position: relative;
     overflow: hidden;
+=======
+>>>>>>> be07b8cf48f62cfa635d431149ccc7ab95653c51
   }
   
   .btn-login {
@@ -534,12 +647,16 @@ import Layout from "~/layouts/Layout.astro";
   
   .btn-login:hover, .btn-register:hover {
     transform: translateY(-3px);
+<<<<<<< HEAD
     box-shadow: 0 6px 20px rgba(245, 78, 162, 0.4);
+=======
+>>>>>>> be07b8cf48f62cfa635d431149ccc7ab95653c51
   }
   
   .btn-login:active, .btn-register:active {
     transform: translateY(0);
   }
+<<<<<<< HEAD
 
   .btn-login::after, .btn-register::after {
     content: '';
@@ -568,6 +685,8 @@ import Layout from "~/layouts/Layout.astro";
     0% { transform: translateX(-100%) rotate(45deg); }
     100% { transform: translateX(100%) rotate(45deg); }
   }
+=======
+>>>>>>> be07b8cf48f62cfa635d431149ccc7ab95653c51
   
   /* Social icons */
   .social-login {
@@ -588,16 +707,25 @@ import Layout from "~/layouts/Layout.astro";
     display: flex;
     justify-content: center;
     align-items: center;
+<<<<<<< HEAD
     background: rgba(255, 255, 255, 0.05);
     border: 1px solid rgba(255, 255, 255, 0.1);
+=======
+    background-color: rgba(255, 255, 255, 0.08);
+>>>>>>> be07b8cf48f62cfa635d431149ccc7ab95653c51
     color: white;
     transition: all 0.3s;
   }
   
   .social-icon:hover {
+<<<<<<< HEAD
     background: rgba(255, 255, 255, 0.1);
     transform: translateY(-3px);
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+=======
+    background-color: rgba(255, 255, 255, 0.15);
+    transform: translateY(-3px);
+>>>>>>> be07b8cf48f62cfa635d431149ccc7ab95653c51
   }
   
   /* Profile styles */
@@ -616,6 +744,7 @@ import Layout from "~/layouts/Layout.astro";
     align-items: center;
     color: white;
     box-shadow: 0 4px 15px rgba(124, 77, 255, 0.4);
+<<<<<<< HEAD
     position: relative;
     overflow: hidden;
   }
@@ -640,11 +769,14 @@ import Layout from "~/layouts/Layout.astro";
   @keyframes avatarShine {
     0% { transform: translateX(-100%) rotate(45deg); }
     100% { transform: translateX(100%) rotate(45deg); }
+=======
+>>>>>>> be07b8cf48f62cfa635d431149ccc7ab95653c51
   }
   
   .avatar-text {
     font-size: 3rem;
     font-weight: bold;
+<<<<<<< HEAD
     text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
   }
 
@@ -662,5 +794,24 @@ import Layout from "~/layouts/Layout.astro";
     background: rgba(220, 38, 38, 0.1);
     border: 1px solid rgba(220, 38, 38, 0.2);
     backdrop-filter: blur(4px);
+=======
+  }
+  
+  .perspective {
+    perspective: 1000px;
+  }
+  
+  .hidden {
+    display: none !important;
+  }
+  
+  @keyframes fade-out {
+    from { opacity: 1; }
+    to { opacity: 0; }
+  }
+  
+  .animate-fade-out {
+    animation: fade-out 0.3s forwards;
+>>>>>>> be07b8cf48f62cfa635d431149ccc7ab95653c51
   }
 </style> 

@@ -1,5 +1,25 @@
 ---
 // Frontmatter goes here - client-side only implementation
+<<<<<<< HEAD
+=======
+import { checkPremiumStatus } from "~/utils/subscription";
+
+// Check premium status if user is logged in
+let isPremium = false;
+if (Astro.cookies.has('user')) {
+  try {
+    const userData = Astro.cookies.get('user')?.value;
+    if (userData) {
+      const user = JSON.parse(userData);
+      if (user?.uid) {
+        isPremium = await checkPremiumStatus(user.uid);
+      }
+    }
+  } catch (error) {
+    console.error('Error checking premium status:', error);
+  }
+}
+>>>>>>> be07b8cf48f62cfa635d431149ccc7ab95653c51
 ---
 
 <div class="dropdown dropdown-end user-menu" data-logged-in="false">
@@ -25,8 +45,33 @@
         <span id="user-email" class="text-xs opacity-70">email@example.com</span>
       </div>
     </li>
+<<<<<<< HEAD
     <li><a href="/favorites" class="flex justify-between">Favorit <span id="desktop-favorites-count" class="badge badge-sm badge-primary ml-1 hidden">0</span></a></li>
     <li><a href="/history">Riwayat Tontonan</a></li>
+=======
+    {isPremium && (
+      <li class="menu-title px-2 py-1">
+        <div class="badge badge-primary gap-1">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M5 2a2 2 0 00-2 2v14l3.5-2 3.5 2 3.5-2 3.5 2V4a2 2 0 00-2-2H5zm4.707 3.707a1 1 0 00-1.414-1.414l-3 3a1 1 0 000 1.414l3 3a1 1 0 001.414-1.414L8.414 9H10a3 3 0 013 3v1a1 1 0 102 0v-1a5 5 0 00-5-5H8.414l1.293-1.293z" clip-rule="evenodd" />
+          </svg>
+          Premium
+        </div>
+      </li>
+    )}
+    <li><a href="/favorites" class="flex justify-between">Favorit <span id="desktop-favorites-count" class="badge badge-sm badge-primary ml-1 hidden">0</span></a></li>
+    <li><a href="/history">Riwayat Tontonan</a></li>
+    {!isPremium && (
+      <li>
+        <a href="/subscription" class="text-primary hover:text-primary-focus">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M5 2a2 2 0 00-2 2v14l3.5-2 3.5 2 3.5-2 3.5 2V4a2 2 0 00-2-2H5zm2.5 3a1.5 1.5 0 100 3 1.5 1.5 0 000-3zm6.207.293a1 1 0 00-1.414 0l-6 6a1 1 0 101.414 1.414l6-6a1 1 0 000-1.414zM12.5 10a1.5 1.5 0 100 3 1.5 1.5 0 000-3z" clip-rule="evenodd" />
+          </svg>
+          Upgrade ke Premium
+        </a>
+      </li>
+    )}
+>>>>>>> be07b8cf48f62cfa635d431149ccc7ab95653c51
     <li class="divider my-1"></li>
     <li><a href="/akun">Profil</a></li>
     <li><a href="#" class="logout-link">Logout</a></li>
@@ -58,9 +103,35 @@
     transform: scale(1.05);
     box-shadow: 0 0 8px rgba(124, 77, 255, 0.5);
   }
+<<<<<<< HEAD
 </style>
 
 <script>
+=======
+  
+  /* Premium badge animation */
+  .badge-primary {
+    animation: glow 2s ease-in-out infinite alternate;
+  }
+  
+  @keyframes glow {
+    from {
+      box-shadow: 0 0 2px var(--p);
+    }
+    to {
+      box-shadow: 0 0 8px var(--p);
+    }
+  }
+</style>
+
+<script>
+  interface User {
+    uid: string;
+    displayName?: string;
+    email?: string;
+  }
+
+>>>>>>> be07b8cf48f62cfa635d431149ccc7ab95653c51
   // Update user information in desktop menu
   function updateUserInfo() {
     try {
@@ -68,7 +139,11 @@
       const userData = localStorage.getItem('animetopia_user');
       if (!userData) return;
       
+<<<<<<< HEAD
       const user = JSON.parse(userData);
+=======
+      const user = JSON.parse(userData) as User;
+>>>>>>> be07b8cf48f62cfa635d431149ccc7ab95653c51
       
       // Update display name
       const displayNameEl = document.getElementById('user-display-name');
@@ -89,13 +164,20 @@
       }
       
       // Update favorites count
+<<<<<<< HEAD
       updateDesktopFavoritesCount(user.uid);
+=======
+      if (user.uid) {
+        updateDesktopFavoritesCount(user.uid);
+      }
+>>>>>>> be07b8cf48f62cfa635d431149ccc7ab95653c51
     } catch (error) {
       console.error('Error updating user info:', error);
     }
   }
   
   // Update favorites count in desktop menu
+<<<<<<< HEAD
   function updateDesktopFavoritesCount(userId) {
     if (!userId) return;
     
@@ -156,4 +238,33 @@
   // Also run on Astro view transitions
   document.addEventListener('astro:page-load', checkUserMenuLoginStatus);
   document.addEventListener('astro:after-swap', checkUserMenuLoginStatus);
+=======
+  async function updateDesktopFavoritesCount(uid: string) {
+    try {
+      const key = `favorites_${uid}`;
+      const favoritesData = localStorage.getItem(key);
+      const favorites = favoritesData ? JSON.parse(favoritesData) : [];
+      
+      const countEl = document.getElementById('desktop-favorites-count');
+      if (countEl) {
+        if (favorites.length > 0) {
+          countEl.textContent = favorites.length.toString();
+          countEl.classList.remove('hidden');
+        } else {
+          countEl.classList.add('hidden');
+        }
+      }
+    } catch (error) {
+      console.error('Error updating favorites count:', error);
+    }
+  }
+  
+  // Initialize
+  document.addEventListener('DOMContentLoaded', updateUserInfo);
+  window.addEventListener('storage', (e: StorageEvent) => {
+    if (e.key === 'animetopia_user' || e.key?.startsWith('favorites_')) {
+      updateUserInfo();
+    }
+  });
+>>>>>>> be07b8cf48f62cfa635d431149ccc7ab95653c51
 </script> 

@@ -10,6 +10,17 @@ const genreName = id
   .map(word => word.charAt(0).toUpperCase() + word.slice(1))
   .join(' ');
 
+<<<<<<< HEAD
+=======
+// Menggunakan endpoint search dengan filter genre
+const data = await fetchData(`search?genre=${id}&page=1`);
+
+// Redirect jika genre tidak valid atau tidak ada hasil
+if (!data?.results?.length) {
+  return Astro.redirect('/genre');
+}
+
+>>>>>>> be07b8cf48f62cfa635d431149ccc7ab95653c51
 // Definisikan tipe untuk anime
 interface AnimeResult {
   id: string;
@@ -18,6 +29,7 @@ interface AnimeResult {
   poster: string;
   episode_text?: string;
 }
+<<<<<<< HEAD
 
 // Menggunakan endpoint search dengan filter genre
 const data = await fetchData(`search?genre=${id}&page=1`) as { results: AnimeResult[] };
@@ -26,6 +38,8 @@ const data = await fetchData(`search?genre=${id}&page=1`) as { results: AnimeRes
 if (!data?.results?.length) {
   return Astro.redirect('/genre');
 }
+=======
+>>>>>>> be07b8cf48f62cfa635d431149ccc7ab95653c51
 ---
 
 <Layout title={`Anime Genre ${genreName} - AnimeTopia`}>
@@ -51,10 +65,17 @@ if (!data?.results?.length) {
       <h1 class="text-2xl md:text-3xl font-bold">Anime Genre {genreName}</h1>
     </div>
 
+<<<<<<< HEAD
     <div id="content" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
       {
         data.results.map((anime) => (
           <div class="card aspect-[3/4] group relative select-none shadow rounded max-h-96 hover:shadow-lg transition-all duration-300">
+=======
+    <div id="content" class="grid grid-cols-2 md:grid-cols-4 gap-4">
+      {
+        (data.results as AnimeResult[]).map((anime) => (
+          <div class="card aspect-[3/4] group relative select-none shadow rounded max-h-96">
+>>>>>>> be07b8cf48f62cfa635d431149ccc7ab95653c51
             <figure>
               <img
                 src={anime.poster}
@@ -70,7 +91,11 @@ if (!data?.results?.length) {
                 {anime.title}
               </h3>
               <div class="absolute bottom-1 flex flex-col gap-4">
+<<<<<<< HEAD
                 <a href={`/watch/${anime.id}/${anime.slug}`} class="hidden group-hover:flex btn btn-primary btn-sm">
+=======
+                <a href={`/anime/${anime.id}/${anime.slug}`} class="hidden group-hover:flex btn btn-primary btn-sm">
+>>>>>>> be07b8cf48f62cfa635d431149ccc7ab95653c51
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     width="16"
@@ -120,6 +145,7 @@ if (!data?.results?.length) {
       try {
         currentPage++;
         const response = await fetch(`/api/search?genre=${genreId}&page=${currentPage}`);
+<<<<<<< HEAD
         const data = await response.json() as { results: Array<{
           id: string;
           slug: string;
@@ -127,6 +153,9 @@ if (!data?.results?.length) {
           poster: string;
           episode_text?: string;
         }>};
+=======
+        const data = await response.json();
+>>>>>>> be07b8cf48f62cfa635d431149ccc7ab95653c51
         
         if (!data?.results?.length) {
           hasMore = false;
@@ -134,9 +163,15 @@ if (!data?.results?.length) {
         }
 
         // Tambahkan anime baru ke grid
+<<<<<<< HEAD
         data.results.forEach((anime) => {
           const animeCard = document.createElement('div');
           animeCard.className = 'card aspect-[3/4] group relative select-none shadow rounded max-h-96 hover:shadow-lg transition-all duration-300';
+=======
+        data.results.forEach((anime: any) => {
+          const animeCard = document.createElement('div');
+          animeCard.className = 'card aspect-[3/4] group relative select-none shadow rounded max-h-96';
+>>>>>>> be07b8cf48f62cfa635d431149ccc7ab95653c51
           animeCard.innerHTML = `
             <figure>
               <img
@@ -153,7 +188,11 @@ if (!data?.results?.length) {
                 ${anime.title}
               </h3>
               <div class="absolute bottom-1 flex flex-col gap-4">
+<<<<<<< HEAD
                 <a href="/watch/${anime.id}/${anime.slug}" class="hidden group-hover:flex btn btn-primary btn-sm">
+=======
+                <a href="/anime/${anime.id}/${anime.slug}" class="hidden group-hover:flex btn btn-primary btn-sm">
+>>>>>>> be07b8cf48f62cfa635d431149ccc7ab95653c51
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     width="16"
@@ -203,6 +242,7 @@ if (!data?.results?.length) {
       observer.disconnect();
     });
   </script>
+<<<<<<< HEAD
 
   <style>
     .card {
@@ -236,4 +276,6 @@ if (!data?.results?.length) {
       animation: fadeIn 0.3s ease-out;
     }
   </style>
+=======
+>>>>>>> be07b8cf48f62cfa635d431149ccc7ab95653c51
 </Layout> 

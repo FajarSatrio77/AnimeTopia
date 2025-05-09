@@ -4,8 +4,20 @@ import "~/styles/global.css";
 import { ClientRouter } from "astro:transitions";
 import Header from "~/components/Header.astro";
 import Footer from "~/components/Footer.astro";
+<<<<<<< HEAD
 
 const { title, description, hideHeader = false } = Astro.props;
+=======
+import Navbar from "~/components/Navbar.astro";
+import "~/styles/tailwind.css";
+
+interface Props {
+  title: string;
+  description?: string;
+}
+
+const { title, description = "Nonton anime subtitle Indonesia gratis tanpa iklan", hideHeader = false } = Astro.props;
+>>>>>>> be07b8cf48f62cfa635d431149ccc7ab95653c51
 ---
 
 <!doctype html>
@@ -21,6 +33,11 @@ const { title, description, hideHeader = false } = Astro.props;
     
     <!-- Auth check script -->
     <script type="module" src="/src/scripts/auth-check.js"></script>
+<<<<<<< HEAD
+=======
+    <!-- Navbar scroll effect -->
+    <script type="module" src="/src/scripts/navbar-scroll.js"></script>
+>>>>>>> be07b8cf48f62cfa635d431149ccc7ab95653c51
   </head>
   <body>
     {!hideHeader && <Header />}

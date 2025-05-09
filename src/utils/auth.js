@@ -7,6 +7,7 @@ import { doc, setDoc, getDoc, collection, query, where, getDocs } from "firebase
 export async function signUpUser(email, password, name) {
   try {
     // 1. Daftar ke Firebase Auth terlebih dahulu
+<<<<<<< HEAD
     console.log("Mencoba mendaftar ke Firebase...");
     const UserCredential = await createUserWithEmailAndPassword(auth, email, password);
     const user = UserCredential.user;
@@ -22,14 +23,60 @@ export async function signUpUser(email, password, name) {
     return user;
   } catch (error) {
     console.error("Error saat pendaftaran:", error);
+=======
+    console.log("Mencoba mendaftar ke Firebase Auth...");
+    const UserCredential = await createUserWithEmailAndPassword(auth, email, password);
+    const user = UserCredential.user;
+
+    // 2. Menyimpan data user ke Firestore
+    console.log("Menyimpan data user ke Firestore...");
+    const userData = {
+      nama: name,
+      email,
+      password,
+      createdAt: new Date().toISOString(),
+      lastLoginAt: new Date().toISOString(),
+      isActive: true
+    };
+
+    // 3. Simpan ke collection users dengan ID dari auth
+    await setDoc(doc(db, "users", user.uid), userData);
+    console.log("Data berhasil disimpan ke Firestore");
+
+    // 4. Simpan ke localStorage
+    localStorage.setItem('animetopia_user', JSON.stringify({
+      ...userData,
+      uid: user.uid
+    }));
+
+    return {
+      success: true,
+      user: {
+        ...userData,
+        uid: user.uid
+      },
+      message: "Pendaftaran berhasil"
+    };
+  } catch (error) {
+    console.error("Error detail:", error);
+    
+>>>>>>> be07b8cf48f62cfa635d431149ccc7ab95653c51
     if (error.code === 'auth/email-already-in-use') {
       throw new Error('Email sudah terdaftar. Silakan gunakan email lain.');
     } else if (error.code === 'auth/invalid-email') {
       throw new Error('Format email tidak valid.');
     } else if (error.code === 'auth/weak-password') {
       throw new Error('Password terlalu lemah. Minimal 6 karakter.');
+<<<<<<< HEAD
     }
     throw new Error('Terjadi kesalahan saat pendaftaran. Silakan coba lagi.');
+=======
+    } else if (error.code?.includes('firestore')) {
+      throw new Error('Gagal menyimpan data ke database. Silakan coba lagi.');
+    }
+    
+    throw new Error('Terjadi kesalahan saat pendaftaran: ' + error.message);
+>>>>>>> be07b8cf48f62cfa635d431149ccc7ab95653c51
   }
 }
 
@@ -195,6 +242,7 @@ export async function registerUser(username, email, password) {
   }
 }
 
+<<<<<<< HEAD
 // Get current user from localStorage
 export function getCurrentUser() {
   try {
@@ -203,6 +251,34 @@ export function getCurrentUser() {
     return JSON.parse(userData);
   } catch (error) {
     console.error('Error getting user data:', error);
+=======
+/**
+ * Mendapatkan data user yang sedang login
+ * @returns {Promise<object|null>} User data atau null jika tidak ada user login
+ */
+export async function getCurrentUser() {
+  try {
+    // Cek data di localStorage
+    const userData = localStorage.getItem('animetopia_user');
+    if (!userData) return null;
+
+    const user = JSON.parse(userData);
+    
+    // Ambil data terbaru dari Firestore
+    const docRef = doc(db, "users", user.uid);
+    const docSnap = await getDoc(docRef);
+    
+    if (docSnap.exists()) {
+      return {
+        uid: user.uid,
+        ...docSnap.data()
+      };
+    }
+    
+    return null;
+  } catch (error) {
+    console.error("Error getting current user:", error);
+>>>>>>> be07b8cf48f62cfa635d431149ccc7ab95653c51
     return null;
   }
 }
@@ -373,4 +449,12 @@ export function removeFromFavorites(animeId) {
 export function isFavorite(animeId) {
   const favorites = getUserFavorites();
   return favorites.some(fav => fav.id === animeId);
+<<<<<<< HEAD
+=======
+} 
+
+// Fungsi untuk mengecek apakah user adalah admin
+export function isAdmin(email) {
+  return email === 'admin@gmail.com';
+>>>>>>> be07b8cf48f62cfa635d431149ccc7ab95653c51
 } 
